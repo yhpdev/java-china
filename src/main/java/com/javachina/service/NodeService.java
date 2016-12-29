@@ -1,32 +1,31 @@
 package com.javachina.service;
 
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.javachina.model.Node;
+
 import java.util.List;
 import java.util.Map;
 
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
-
-import com.javachina.model.Node;
-
 public interface NodeService {
 	
-	Node getNode(Long nid);
+	Node getNode(Integer nid);
 	
-	Node getNode(QueryParam queryParam);
+	Node getNode(Take take);
 	
-	Map<String, Object> getNodeDetail(Node node, Long nid);
+	Map<String, Object> getNodeDetail(Node node, Integer nid);
 	
-	List<Node> getNodeList(QueryParam queryParam);
+	List<Node> getNodeList(Take take);
 	
 	List<Map<String, Object>> getNodeList();
 	
-	Page<Map<String, Object>> getPageList(QueryParam queryParam);
+	Paginator<Map<String, Object>> getPageList(Take take);
 	
-	boolean save(Long pid, String title, String description, String slug, String node_pic);
+	boolean save(Integer pid, String title, String description, String slug, String node_pic);
 	
-	boolean delete(Long nid);
+	boolean delete(Integer nid);
 	
-	boolean updateCount(Long nid, String type, int count);
+	boolean updateCount(Integer nid, String type, int count);
 
-	boolean update(Long nid, Long pid, String title, String description, String node_slug, String node_pic);
+	boolean update(Integer nid, Integer pid, String title, String description, String node_slug, String node_pic);
 }

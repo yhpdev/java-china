@@ -1,17 +1,17 @@
 package com.javachina.service;
 
-import java.util.Map;
+import com.blade.jdbc.model.Paginator;
 
-import com.blade.jdbc.Page;
+import java.util.Map;
 
 public interface NoticeService {
 	
-	boolean save(String type, Long to_uid, Long event_id);
+	boolean save(String type, Integer to_uid, Integer event_id);
 	
-	boolean read(Long to_uid);
-	
-	Page<Map<String, Object>> getNoticePage(Long to_uid, Integer page, Integer count);
+	boolean read(Integer to_uid);
 
-	Long getNotices(Long to_uid);
+	Paginator<Map<String, Object>> getNoticePage(Integer to_uid, Integer page, Integer count);
+
+	Integer getNotices(Integer to_uid);
 	
 }

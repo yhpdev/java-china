@@ -1,43 +1,54 @@
 package com.javachina.service.impl;
 
 import com.blade.ioc.annotation.Service;
-import com.blade.jdbc.AR;
+import com.blade.jdbc.ActiveRecord;
+import com.blade.kit.DateKit;
+import com.blade.kit.StringKit;
+import com.javachina.config.DBConfig;
 import com.javachina.model.TopicCount;
 import com.javachina.service.TopicCountService;
-
-import blade.kit.StringKit;
 
 @Service
 public class TopicCountServiceImpl implements TopicCountService {
 
+	private ActiveRecord activeRecord = DBConfig.activeRecord;
+
 	@Override
-	public boolean update(String type, Long tid, int count) {
+	public boolean update(String type, Integer tid, int count) {
 		if(StringKit.isBlank(type) || null == tid){
 			return false;
 		}
 		TopicCount topicCount = this.getCount(tid);
 		if(null != topicCount){
-			String sql = String.format("update t_topiccount set %s = (%s + ?) where tid = ?", type, type);
-			AR.update(sql, count, tid).executeUpdate();
+			String sql = String.format("update t_topiccount set %s = (%s + "+count+") where tid = " + tid, type, type);
+			activeRecord.execute(sql);
+			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public TopicCount getCount(Long tid) {
+	public TopicCount getCount(Integer tid) {
 		if(null == tid){
 			return null;
 		}
-		return AR.findById(TopicCount.class, tid);
+		return activeRecord.byId(TopicCount.class, tid);
 	}
-	
+
 	@Override
-	public boolean save(Long tid, Integer create_time) {
+	public boolean save(Integer tid, Integer create_time) {
 		try {
 			if(null == tid || tid < 1){
 				return false;
 			}
-			AR.update("insert into t_topiccount(tid, views, loves, favorites, comments, sinks, create_time) values(?, ?, ?, ?, ?, ?, ?)", tid, 0, 0, 0, 0, 0, create_time).executeUpdate();
+			TopicCount topicCount = new TopicCount();
+			topicCount.setTid(tid);
+			topicCount.setViews(0);
+			topicCount.setFavorites(0);
+			topicCount.setComments(0);
+			topicCount.setSinks(0);
+			topicCount.setCreate_time(DateKit.getCurrentUnixTime());
+			activeRecord.insert(topicCount);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();

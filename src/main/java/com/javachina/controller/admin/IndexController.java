@@ -1,35 +1,29 @@
 package com.javachina.controller.admin;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 import com.blade.Blade;
 import com.blade.ioc.annotation.Inject;
-import com.blade.jdbc.AR;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
-import com.blade.route.annotation.Path;
-import com.blade.route.annotation.PathVariable;
-import com.blade.route.annotation.Route;
-import com.blade.view.ModelAndView;
-import com.blade.web.http.HttpMethod;
-import com.blade.web.http.Request;
-import com.blade.web.http.Response;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.StringKit;
+import com.blade.mvc.annotation.Controller;
+import com.blade.mvc.annotation.PathParam;
+import com.blade.mvc.annotation.Route;
+import com.blade.mvc.http.HttpMethod;
+import com.blade.mvc.http.Request;
+import com.blade.mvc.http.Response;
+import com.blade.mvc.view.ModelAndView;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.controller.BaseController;
 import com.javachina.model.Node;
 import com.javachina.model.User;
-import com.javachina.service.ActivecodeService;
-import com.javachina.service.NodeService;
-import com.javachina.service.SettingsService;
-import com.javachina.service.TopicService;
-import com.javachina.service.UserService;
+import com.javachina.service.*;
 
-import blade.kit.StringKit;
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 
-@Path("/admin/")
+@Controller("/admin/")
 public class IndexController extends BaseController {
 
 	@Inject
@@ -64,9 +58,9 @@ public class IndexController extends BaseController {
 		if(null == page || page < 1){
 			page = 1;
 		}
-		QueryParam np = QueryParam.me();
-		np.eq("is_del", 0).orderby("topics desc").page(page, 10);
-		Page<Map<String, Object>> nodePage = nodeService.getPageList(np);
+		Take np = new Take(Node.class);
+		np.eq("is_del", 0).page(page, 10, "topics desc");
+		Paginator<Map<String, Object>> nodePage = nodeService.getPageList(np);
 		request.attribute("nodePage", nodePage);
 		return this.getAdminView("nodes");
 	}
@@ -81,8 +75,8 @@ public class IndexController extends BaseController {
 	}
 	
 	public void putData(Request request){
-		QueryParam np = QueryParam.me();
-		np.eq("is_del", 0).eq("pid", 0).orderby("topics desc");
+		Take np = new Take(Node.class);
+		np.eq("is_del", 0).eq("pid", 0).desc("topics");
 		List<Node> nodes = nodeService.getNodeList(np);
 		request.attribute("nodes", nodes);
 	}
@@ -97,7 +91,7 @@ public class IndexController extends BaseController {
 		String title = request.query("node_name");
 		String description = request.query("description");
 		String node_slug = request.query("node_slug");
-		Long pid = request.queryAsLong("pid");
+		Integer pid = request.queryAsInt("pid");
 		String node_pic = request.query("node_pic");
 		
 		if(StringKit.isBlank(title) || StringKit.isBlank(node_slug) || null == pid){
@@ -123,7 +117,7 @@ public class IndexController extends BaseController {
 	 * 编辑节点页面
 	 */
 	@Route(value = "nodes/:nid", method = HttpMethod.GET)
-	public ModelAndView show_edit_node(@PathVariable("nid") Long nid, Request request, Response response){
+	public ModelAndView show_edit_node(@PathParam("nid") Integer nid, Request request, Response response){
 		
 		Map<String, Object> nodeMap = nodeService.getNodeDetail(null, nid);
 		request.attribute("node", nodeMap);
@@ -137,11 +131,11 @@ public class IndexController extends BaseController {
 	@Route(value = "nodes/edit", method = HttpMethod.POST)
 	public void edit_node(Request request, Response response){
 		
-		Long nid = request.queryAsLong("nid");
+		Integer nid = request.queryAsInt("nid");
 		String title = request.query("node_name");
 		String description = request.query("description");
 		String node_slug = request.query("node_slug");
-		Long pid = request.queryAsLong("pid");
+		Integer pid = request.queryAsInt("pid");
 		String node_pic = request.query("node_pic");
 		
 		if(StringKit.isNotBlank(node_pic)){
@@ -167,13 +161,13 @@ public class IndexController extends BaseController {
 		if(null == page || page < 1){
 			page = 1;
 		}
-		QueryParam up = QueryParam.me();
+		Take up = new Take(User.class);
 		if(StringKit.isNotBlank(email)){
 			up.eq("email", email);
 			request.attribute("email", email);
 		}
 		up.orderby("update_time desc").page(page, 15);
-		Page<User> userPage = userService.getPageList(up);
+		Paginator<User> userPage = userService.getPageList(up);
 		request.attribute("userPage", userPage);
 		return this.getAdminView("users");
 	}
@@ -209,7 +203,7 @@ public class IndexController extends BaseController {
 	@Route(value = "status", method = HttpMethod.POST)
 	public void updateStatus(Request request, Response response){
 		String type = request.query("type");
-		Long uid = request.queryAsLong("uid");
+		Integer uid = request.queryAsInt("uid");
 		if(StringKit.isBlank(type) || null == uid){
 			this.error(response, "缺少参数");
 			return;
@@ -268,7 +262,6 @@ public class IndexController extends BaseController {
 		}
 		
 		if(type.equals("clean_cache")){
-			AR.cleanCache();
 			request.attribute(this.INFO, "执行成功");
 			return this.getAdminView("tools");
 		}

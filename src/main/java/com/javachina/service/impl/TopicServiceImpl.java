@@ -1,39 +1,27 @@
 package com.javachina.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
-import com.blade.jdbc.AR;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
+import com.blade.jdbc.ActiveRecord;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.CollectionKit;
+import com.blade.kit.DateKit;
+import com.blade.kit.StringKit;
 import com.javachina.ImageTypes;
 import com.javachina.Types;
-import com.javachina.kit.DateKit;
+import com.javachina.config.DBConfig;
 import com.javachina.kit.Utils;
-import com.javachina.model.Comment;
-import com.javachina.model.Node;
-import com.javachina.model.Topic;
-import com.javachina.model.TopicCount;
-import com.javachina.model.User;
-import com.javachina.service.CommentService;
-import com.javachina.service.NodeService;
-import com.javachina.service.NoticeService;
-import com.javachina.service.SettingsService;
-import com.javachina.service.TopicCountService;
-import com.javachina.service.TopicService;
-import com.javachina.service.UserService;
+import com.javachina.model.*;
+import com.javachina.service.*;
 
-import blade.kit.CollectionKit;
-import blade.kit.StringKit;
+import java.util.*;
 
 @Service
 public class TopicServiceImpl implements TopicService {
-	
+
+	private ActiveRecord activeRecord = DBConfig.activeRecord;
+
 	@Inject
 	private UserService userService;
 	
@@ -53,23 +41,23 @@ public class TopicServiceImpl implements TopicService {
 	private TopicCountService topicCountService;
 	
 	@Override
-	public Topic getTopic(Long tid) {
-		return AR.findById(Topic.class, tid);
+	public Topic getTopic(Integer tid) {
+		return activeRecord.byId(Topic.class, tid);
 	}
 	
 	@Override
-	public List<Map<String, Object>> getTopicList(QueryParam queryParam) {
+	public List<Map<String, Object>> getTopicList(Take queryParam) {
 		if(null != queryParam){
-			List<Topic> topics = AR.find(queryParam).list(Topic.class);
+			List<Topic> topics = activeRecord.list(queryParam);
 			return this.getTopicListMap(topics);
 		}
 		return null;
 	}
 	
 	@Override
-	public Page<Map<String, Object>> getPageList(QueryParam queryParam) {
+	public Paginator<Map<String, Object>> getPageList(Take queryParam) {
 		if(null != queryParam){
-			Page<Topic> topicPage = AR.find(queryParam).page(Topic.class);
+			Paginator<Topic> topicPage = activeRecord.page(queryParam);
 			return this.getTopicPageMap(topicPage);
 		}
 		return null;
@@ -88,30 +76,35 @@ public class TopicServiceImpl implements TopicService {
 		return topicMaps;
 	}
 	
-	private Page<Map<String, Object>> getTopicPageMap(Page<Topic> topicPage){
+	private Paginator<Map<String, Object>> getTopicPageMap(Paginator<Topic> topicPage){
+		long totalCount = topicPage.getTotal();
+		int page = topicPage.getPageNum();
+		int pageSize = topicPage.getLimit();
+		Paginator<Map<String, Object>> result = new Paginator<>(totalCount, page, pageSize);
 		
-		long totalCount = topicPage.getTotalCount();
-		int page = topicPage.getPage();
-		int pageSize = topicPage.getPageSize();
-		Page<Map<String, Object>> result = new Page<Map<String,Object>>(totalCount, page, pageSize);
-		
-		List<Topic> topics = topicPage.getResults();
+		List<Topic> topics = topicPage.getList();
 		List<Map<String, Object>> topicMaps = this.getTopicListMap(topics);
-		result.setResults(topicMaps);
-		
+		result.setList(topicMaps);
 		return result;
 	}
 	
 	@Override
-	public Long save(Long uid, Long nid, String title, String content, Integer isTop) {
+	public Integer save(Integer uid, Integer nid, String title, String content, Integer isTop) {
 		
 		try {
 			Integer time = DateKit.getCurrentUnixTime();
-			
-			Long tid = (Long) AR
-					.update("insert into t_topic(uid, nid, title, content, is_top, create_time, update_time, status) values(?, ?, ?, ?, ?, ?, ?, ?)",
-							uid, nid, title, content, isTop, time, time, 1).key();
-			
+
+			Topic topic = new Topic();
+			topic.setUid(uid);
+			topic.setNid(nid);
+			topic.setTitle(title);
+			topic.setContent(content);
+			topic.setIs_top(isTop);
+			topic.setCreate_time(time);
+			topic.setUpdate_time(time);
+			topic.setStatus(1);
+
+			Integer tid = activeRecord.insert(topic);
 			if(null != tid){
 				
 				topicCountService.save(tid, time);
@@ -145,13 +138,13 @@ public class TopicServiceImpl implements TopicService {
 	}
 	
 	@Override
-	public boolean delete(Long tid) {
+	public boolean delete(Integer tid) {
 		if(null != tid){
-			Topic topic = this.getTopic(tid);
-			if(null == topic){
-				return false;
-			}
-			AR.update("update t_topic set status = 2 where tid = ?", tid).executeUpdate(true);
+			Topic topic = new Topic();
+			topic.setTid(tid);
+			topic.setStatus(2);
+			activeRecord.update(topic);
+
 			// 更新节点下的帖子数
 			nodeService.updateCount(topic.getNid(), Types.topics.toString(), +1);
 			// 更新总贴数
@@ -166,9 +159,9 @@ public class TopicServiceImpl implements TopicService {
 		if(null == topic){
 			return null;
 		}
-		Long tid = topic.getTid();
-		Long uid = topic.getUid();
-		Long nid = topic.getNid();
+		Integer tid = topic.getTid();
+		Integer uid = topic.getUid();
+		Integer nid = topic.getNid();
 		
 		User user = userService.getUser(uid);
 		Node node = nodeService.getNode(nid);
@@ -181,7 +174,7 @@ public class TopicServiceImpl implements TopicService {
 		map.put("tid", tid);
 		
 		TopicCount topicCount = topicCountService.getCount(tid);
-		Long views = 0L, loves = 0L, favorites = 0L, comments = 0L;
+		Integer views = 0, loves = 0, favorites = 0, comments = 0;
 		if(null != topicCount){
 			views = topicCount.getViews();
 			loves = topicCount.getLoves();
@@ -231,9 +224,9 @@ public class TopicServiceImpl implements TopicService {
 	 * @return
 	 */
 	@Override
-	public boolean comment(Long uid, Long to_uid, Long tid, String content, String ua) {
+	public boolean comment(Integer uid, Integer to_uid, Integer tid, String content, String ua) {
 		try {
-			Long cid = commentService.save(uid, to_uid, tid, content, ua);
+			Integer cid = commentService.save(uid, to_uid, tid, content, ua);
 			if(null != cid){
 				
 				topicCountService.update(Types.comments.toString(), tid, 1);
@@ -266,19 +259,29 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public Long getTopics(Long uid) {
+	public Integer getTopics(Integer uid) {
 		if(null != uid){
-			return AR.find("select count(1) from t_topic where uid = ? and status = 1", uid).first(Long.class);
+			Topic topic = new Topic();
+			topic.setUid(uid);
+			topic.setStatus(1);
+			return activeRecord.count(topic);
 		}
-		return 0L;
+		return 0;
 	}
 
 	@Override
-	public Long update(Long tid, Long nid, String title, String content) {
+	public Integer update(Integer tid, Integer nid, String title, String content) {
 		if(null != tid && null != nid && StringKit.isNotBlank(title) && StringKit.isNotBlank(content)){
 			try {
-				AR.update("update t_topic set nid = ?, title = ?, content = ?, update_time = ? where tid = ?",
-						nid, title, content, DateKit.getCurrentUnixTime(), tid).executeUpdate(true);
+
+				Topic topic = new Topic();
+				topic.setTid(tid);
+				topic.setNid(nid);
+				topic.setTitle(title);
+				topic.setContent(content);
+				topic.setUpdate_time(DateKit.getCurrentUnixTime());
+				activeRecord.update(topic);
+
 				return tid;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -288,40 +291,44 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public Long getLastCreateTime(Long uid) {
+	public Integer getLastCreateTime(Integer uid) {
 		if(null == uid){
 			return null;
 		}
-		return AR.find("select create_time from t_topic where uid = ? order by create_time desc", uid).first(Long.class);
+		return activeRecord.one(Integer.class, "select create_time from t_topic where uid = ? order by create_time desc limit 1", uid);
 	}
 	
 	@Override
-	public Long getLastUpdateTime(Long uid) {
+	public Integer getLastUpdateTime(Integer uid) {
 		if(null == uid){
 			return null;
 		}
-		return AR.find("select update_time from t_topic where uid = ? order by update_time desc", uid).first(Long.class);
+		return activeRecord.one(Integer.class, "select update_time from t_topic where uid = ? order by create_time desc limit 1", uid);
 	}
 	
 	@Override
 	public boolean refreshWeight() {
-		List<Long> topics = AR.find("select tid from t_topic where status = 1").list(Long.class);
+
+		List<Integer> topics = activeRecord.list("select tid from t_topic where status = 1", Integer.class);
 		if(null != topics) {
-			for(Long tid : topics){
+			for(Integer tid : topics){
 				this.updateWeight(tid);
 			}
 		}
 		return false;
 	}
 
-	public boolean updateWeight(Long tid, Long loves, Long favorites, Long comment, Long sinks, Long create_time) {
+	public boolean updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time) {
 		if(null == tid){
 			return false;
 		}
 		
 		try {
 			double weight = Utils.getWeight(loves, favorites, comment, sinks, create_time);
-			AR.update("update t_topic set weight = ? where tid = ?", weight, tid).executeUpdate();
+			Topic topic = new Topic();
+			topic.setTid(tid);
+			topic.setWeight(weight);
+			activeRecord.update(topic);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -330,11 +337,11 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public Page<Map<String, Object>> getHotTopic(Long nid, Integer page, Integer count) {
+	public Paginator<Map<String, Object>> getHotTopic(Integer nid, Integer page, Integer count) {
 		if(null == page || page < 1){
 			page = 1;
 		}
-		QueryParam tp = QueryParam.me();
+		Take tp = new Take(Topic.class);
 		if(null != nid){
 			tp.eq("nid", nid);
 		}
@@ -343,11 +350,11 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public Page<Map<String, Object>> getRecentTopic(Long nid, Integer page, Integer count) {
+	public Paginator<Map<String, Object>> getRecentTopic(Integer nid, Integer page, Integer count) {
 		if(null == page || page < 1){
 			page = 1;
 		}
-		QueryParam tp = QueryParam.me();
+		Take tp = new Take(Topic.class);
 		if(null != nid){
 			tp.eq("nid", nid);
 		}
@@ -356,31 +363,34 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public void essence(Long tid, Integer count) {
+	public void essence(Integer tid, Integer count) {
 		try {
-			AR.update("update t_topic set is_essence = ? where tid = ?", count, tid).executeUpdate();
+			Topic topic = new Topic();
+			topic.setTid(tid);
+			topic.setIs_essence(count);
+			activeRecord.update(topic);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public boolean updateWeight(Long tid) {
+	public boolean updateWeight(Integer tid) {
 		if(null != tid){
 			TopicCount topicCount = topicCountService.getCount(tid);
-			Long loves = topicCount.getLoves();
-			Long favorites = topicCount.getFavorites();
-			Long comment = topicCount.getComments();
-			Long sinks = topicCount.getSinks();
-			Long create_time = topicCount.getCreate_time();
+			Integer loves = topicCount.getLoves();
+			Integer favorites = topicCount.getFavorites();
+			Integer comment = topicCount.getComments();
+			Integer sinks = topicCount.getSinks();
+			Integer create_time = topicCount.getCreate_time();
 			return this.updateWeight(tid, loves, favorites, comment, sinks, create_time);
 		}
 		return false;
 	}
 
 	@Override
-	public List<Long> topicIds() {
-		return AR.find("select tid from t_topic where status = 1").list(Long.class);
+	public List<Integer> topicIds() {
+		return activeRecord.list("select tid from t_topic where status = 1", Integer.class);
 	}
 	
 }

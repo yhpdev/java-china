@@ -13,14 +13,14 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.blade.web.http.Request;
+import com.blade.kit.StringKit;
+import com.blade.mvc.http.Request;
 import com.javachina.ImageTypes;
 import com.javachina.ext.Funcs;
 import com.javachina.ext.markdown.BlockEmitter;
 import com.javachina.ext.markdown.Configuration;
 import com.javachina.ext.markdown.Processor;
 
-import blade.kit.StringKit;
 
 /**
  * 工具类
@@ -239,7 +239,7 @@ public class Utils {
 	 * @param create_time	创建时间，越早权重越低
 	 * @return
 	 */
-	public static double getWeight(Long loves, Long favorites, Long comment, Long sinks, Long create_time) {
+	public static double getWeight(Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time) {
 		
 		long score = Math.max(loves - 1, 1) + favorites * 2 + comment * 2 - sinks;
 		

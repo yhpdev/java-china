@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Random;
 
 import com.blade.Blade;
+import com.blade.kit.StringKit;
 import com.qiniu.common.Config;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
@@ -11,8 +12,6 @@ import com.qiniu.http.Response;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
-
-import blade.kit.StringKit;
 
 public class QiniuKit {
 
@@ -27,11 +26,11 @@ public class QiniuKit {
 		
 		Config.zone = new Zone("http://up.qiniug.com", "http://up.qiniu.com");
 		
-		ACCESS_KEY = Blade.me().config().get("qiniu.ACCESS_KEY");
-		SECRET_KEY = Blade.me().config().get("qiniu.SECRET_KEY");
-		BUCKET_NAME = Blade.me().config().get("qiniu.BUCKET_NAME");
+		ACCESS_KEY = Blade.$().config().get("qiniu.ACCESS_KEY");
+		SECRET_KEY = Blade.$().config().get("qiniu.SECRET_KEY");
+		BUCKET_NAME = Blade.$().config().get("qiniu.BUCKET_NAME");
 		
-		CDN = Blade.me().config().get("qiniu.cdn").split(",");
+		CDN = Blade.$().config().get("qiniu.cdn").split(",");
 		
 		if(StringKit.isNotBlank(ACCESS_KEY) && StringKit.isNotBlank(SECRET_KEY)){
 			AUTH = Auth.create(ACCESS_KEY, SECRET_KEY);

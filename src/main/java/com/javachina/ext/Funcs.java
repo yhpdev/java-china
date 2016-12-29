@@ -1,11 +1,10 @@
 package com.javachina.ext;
 
+import com.blade.kit.DateKit;
+import com.blade.kit.StringKit;
 import com.javachina.Constant;
 import com.javachina.ImageTypes;
-import com.javachina.kit.DateKit;
 import com.javachina.kit.Utils;
-
-import blade.kit.StringKit;
 
 public class Funcs {
 
@@ -47,7 +46,7 @@ public class Funcs {
 	
 	/**
 	 * 格式化日期
-	 * @param date
+	 * @param unixTime
 	 * @return
 	 */
 	public static String fmtdate(Long unixTime) {
@@ -59,7 +58,7 @@ public class Funcs {
 	
 	/**
 	 * 格式化日期
-	 * @param date
+	 * @param unixTime
 	 * @param patten
 	 * @return
 	 */
@@ -93,7 +92,7 @@ public class Funcs {
 	/**
 	  * 显示时间，如果与当前时间差别小于一天，则自动用**秒(分，小时)前，如果大于一天则用format规定的格式显示
 	  * 
-	  * @param ctime时间
+	  * @param ctime 时间
 	  * @return
 	  */
 	public static String timespan(Long ctime) {
@@ -102,7 +101,7 @@ public class Funcs {
 			return r;
 
 		long nowtimelong = System.currentTimeMillis();
-		long ctimelong = DateKit.getDateByUnixTime(ctime).getTime();
+		long ctimelong = DateKit.getDateByUnixTime(ctime.intValue()).getTime();
 		long result = Math.abs(nowtimelong - ctimelong);
 		
 		// 20秒内

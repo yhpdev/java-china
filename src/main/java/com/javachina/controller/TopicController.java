@@ -1,37 +1,30 @@
 package com.javachina.controller;
 
-import java.util.List;
-import java.util.Map;
-
 import com.blade.ioc.annotation.Inject;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
-import com.blade.route.annotation.Path;
-import com.blade.route.annotation.PathVariable;
-import com.blade.route.annotation.Route;
-import com.blade.view.ModelAndView;
-import com.blade.web.http.HttpMethod;
-import com.blade.web.http.Request;
-import com.blade.web.http.Response;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.DateKit;
+import com.blade.kit.StringKit;
+import com.blade.mvc.annotation.Controller;
+import com.blade.mvc.annotation.PathParam;
+import com.blade.mvc.annotation.Route;
+import com.blade.mvc.http.HttpMethod;
+import com.blade.mvc.http.Request;
+import com.blade.mvc.http.Response;
+import com.blade.mvc.view.ModelAndView;
 import com.javachina.Actions;
 import com.javachina.Constant;
 import com.javachina.Types;
-import com.javachina.kit.DateKit;
 import com.javachina.kit.SessionKit;
+import com.javachina.model.Comment;
 import com.javachina.model.LoginUser;
 import com.javachina.model.Topic;
-import com.javachina.service.CommentService;
-import com.javachina.service.FavoriteService;
-import com.javachina.service.NodeService;
-import com.javachina.service.SettingsService;
-import com.javachina.service.TopicCountService;
-import com.javachina.service.TopicService;
-import com.javachina.service.UserService;
-import com.javachina.service.UserlogService;
+import com.javachina.service.*;
 
-import blade.kit.StringKit;
+import java.util.List;
+import java.util.Map;
 
-@Path("/")
+@Controller("/")
 public class TopicController extends BaseController {
 
 	@Inject
@@ -81,7 +74,7 @@ public class TopicController extends BaseController {
 	 * 编辑帖子页面
 	 */
 	@Route(value = "/topic/edit/:tid", method = HttpMethod.GET)
-	public ModelAndView show_ediot_topic(@PathVariable("tid") Long tid, Request request, Response response){
+	public ModelAndView show_ediot_topic(@PathParam("tid") Integer tid, Request request, Response response){
 		
 		LoginUser user = SessionKit.getLoginUser();
 		if(null == user){
@@ -117,10 +110,10 @@ public class TopicController extends BaseController {
 	 */
 	@Route(value = "/topic/edit", method = HttpMethod.POST)
 	public void edit_topic(Request request, Response response){
-		Long tid = request.queryAsLong("tid");
+		Integer tid = request.queryAsInt("tid");
 		String title = request.query("title");
 		String content = request.query("content");
-		Long nid = request.queryAsLong("nid");
+		Integer nid = request.queryAsInt("nid");
 		
 		LoginUser user = SessionKit.getLoginUser();
 		if(null == user){
@@ -171,8 +164,8 @@ public class TopicController extends BaseController {
 			this.error(response, "内容太长了，试试少吐点口水");
 			return;
 		}
-		
-		Long last_time = topicService.getLastUpdateTime(user.getUid());
+
+		Integer last_time = topicService.getLastUpdateTime(user.getUid());
 		if(null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10 ){
 			this.error(response, "您操作频率太快，过一会儿操作吧！");
 			return;
@@ -199,7 +192,7 @@ public class TopicController extends BaseController {
 		
 		String title = request.query("title");
 		String content = request.query("content");
-		Long nid = request.queryAsLong("nid");
+		Integer nid = request.queryAsInt("nid");
 		
 		LoginUser user = SessionKit.getLoginUser();
 		
@@ -228,7 +221,7 @@ public class TopicController extends BaseController {
 			return;
 		}
 		
-		Long last_time = topicService.getLastCreateTime(user.getUid());
+		Integer last_time = topicService.getLastCreateTime(user.getUid());
 		if(null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10 ){
 			this.error(response, "您操作频率太快，过一会儿操作吧！");
 			return;
@@ -236,7 +229,7 @@ public class TopicController extends BaseController {
 		
 		// 发布帖子
 		try {
-			Long tid = topicService.save(user.getUid(), nid, title, content, 0);
+			Integer tid = topicService.save(user.getUid(), nid, title, content, 0);
 			if(null != tid){
 				Constant.SYS_INFO = settingsService.getSystemInfo();
 				Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
@@ -250,7 +243,6 @@ public class TopicController extends BaseController {
 			e.printStackTrace();
 			this.error(response, "帖子发布失败");
 		}
-		return;
 	}
 	
 	private void putData(Request request){
@@ -262,11 +254,11 @@ public class TopicController extends BaseController {
 	 * 帖子详情页面
 	 */
 	@Route(value = "/topic/:tid", method = HttpMethod.GET)
-	public ModelAndView show_topic(@PathVariable("tid") Long tid, Request request, Response response){
+	public ModelAndView show_topic(@PathParam("tid") Integer tid, Request request, Response response){
 		
 		LoginUser user = SessionKit.getLoginUser();
-		
-		Long uid = null;
+
+		Integer uid = null;
 		if(null != user){
 			uid = user.getUid();
 		} else {
@@ -286,7 +278,7 @@ public class TopicController extends BaseController {
 		return this.getView("topic_detail");
 	}
 	
-	private void putDetail(Request request, Response response, Long uid, Topic topic){
+	private void putDetail(Request request, Response response, Integer uid, Topic topic){
 		
 		Integer page = request.queryAsInt("p");
 		if(null == page || page < 1){
@@ -305,9 +297,9 @@ public class TopicController extends BaseController {
 		boolean is_love = favoriteService.isFavorite(Types.love.toString(), uid, topic.getTid());
 		request.attribute("is_love", is_love);
 		
-		QueryParam cp = QueryParam.me();
-		cp.eq("tid", topic.getTid()).orderby("cid asc").page(page, 20);
-		Page<Map<String, Object>> commentPage = commentService.getPageListMap(cp);
+		Take cp = new Take(Comment.class);
+		cp.and("tid", topic.getTid()).asc("cid").page(page, 20);
+		Paginator<Map<String, Object>> commentPage = commentService.getPageListMap(cp);
 		request.attribute("commentPage", commentPage);
 	}
 	
@@ -323,10 +315,9 @@ public class TopicController extends BaseController {
 			return;
 		}
 		
-		Long uid = user.getUid();
-		
+		Integer uid = user.getUid();
 		String content = request.query("content");
-		Long tid = request.queryAsLong("tid");
+		Integer tid = request.queryAsInt("tid");
 		Topic topic = topicService.getTopic(tid);
 		if(null == topic){
 			response.go("/");
@@ -342,8 +333,8 @@ public class TopicController extends BaseController {
 			this.error(response, "内容太长了，试试少吐点口水。");
 			return;
 		}
-		
-		Long last_time = topicService.getLastUpdateTime(user.getUid());
+
+		Integer last_time = topicService.getLastUpdateTime(user.getUid());
 		if(null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10 ){
 			this.error(response, "您操作频率太快，过一会儿操作吧！");
 			return;
@@ -387,8 +378,8 @@ public class TopicController extends BaseController {
 			this.error(response, "您无权限操作");
 			return;
 		}
-		
-		Long tid = request.queryAsLong("tid");
+
+		Integer tid = request.queryAsInt("tid");
 		if(null == tid || tid == 0){
 			return;
 		}
@@ -421,8 +412,8 @@ public class TopicController extends BaseController {
 			this.nosignin(response);
 			return;
 		}
-		
-		Long tid = request.queryAsLong("tid");
+
+		Integer tid = request.queryAsInt("tid");
 		if(null == tid || tid == 0){
 			return;
 		}
@@ -452,8 +443,8 @@ public class TopicController extends BaseController {
 			this.nosignin(response);
 			return;
 		}
-		
-		Long tid = request.queryAsLong("tid");
+
+		Integer tid = request.queryAsInt("tid");
 		if(null == tid || tid == 0 || user.getRole_id() > 2){
 			return;
 		}
@@ -473,15 +464,15 @@ public class TopicController extends BaseController {
 	public ModelAndView essencePage(Request request, Response response){
 		
 		// 帖子
-		QueryParam tp = QueryParam.me();
+		Take tp = new Take(Topic.class);
 		Integer page = request.queryAsInt("p");
 		
 		if(null == page || page < 1){
 			page = 1;
 		}
 		
-		tp.eq("status", 1).eq("is_essence", 1).orderby("create_time desc, update_time desc").page(page, 15);
-		Page<Map<String, Object>> topicPage = topicService.getPageList(tp);
+		tp.set("status", 1).set("is_essence", 1).desc("create_time", "update_time").page(page, 15);
+		Paginator<Map<String, Object>> topicPage = topicService.getPageList(tp);
 		request.attribute("topicPage", topicPage);
 		
 		return this.getView("essence");

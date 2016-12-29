@@ -1,46 +1,36 @@
 package com.javachina.controller;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 import com.blade.Blade;
 import com.blade.ioc.annotation.Inject;
-import com.blade.jdbc.AR;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
-import com.blade.patchca.PatchcaService;
-import com.blade.route.annotation.Path;
-import com.blade.route.annotation.PathVariable;
-import com.blade.route.annotation.Route;
-import com.blade.view.ModelAndView;
-import com.blade.web.http.HttpMethod;
-import com.blade.web.http.Request;
-import com.blade.web.http.Response;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.DateKit;
+import com.blade.kit.EncrypKit;
+import com.blade.kit.PatternKit;
+import com.blade.kit.StringKit;
+import com.blade.mvc.annotation.Controller;
+import com.blade.mvc.annotation.PathParam;
+import com.blade.mvc.annotation.Route;
+import com.blade.mvc.http.HttpMethod;
+import com.blade.mvc.http.Request;
+import com.blade.mvc.http.Response;
+import com.blade.mvc.view.ModelAndView;
+import com.blade.patchca.DefaultPatchca;
+import com.blade.patchca.Patchca;
 import com.javachina.Actions;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.kit.SessionKit;
 import com.javachina.kit.Utils;
-import com.javachina.model.Activecode;
-import com.javachina.model.LoginUser;
-import com.javachina.model.User;
-import com.javachina.service.ActivecodeService;
-import com.javachina.service.CommentService;
-import com.javachina.service.FavoriteService;
-import com.javachina.service.NoticeService;
-import com.javachina.service.SettingsService;
-import com.javachina.service.TopicService;
-import com.javachina.service.UserService;
-import com.javachina.service.UserinfoService;
-import com.javachina.service.UserlogService;
+import com.javachina.model.*;
+import com.javachina.service.*;
 
-import blade.kit.DateKit;
-import blade.kit.EncrypKit;
-import blade.kit.PatternKit;
-import blade.kit.StringKit;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
-@Path("/")
+@Controller("/")
 public class UserController extends BaseController {
 	
 	@Inject
@@ -70,12 +60,14 @@ public class UserController extends BaseController {
 	@Inject
 	private UserlogService userlogService;
 
+	private Patchca patchca = new DefaultPatchca();
+
 	/**
 	 * 获取验证码
 	 */
 	@Route(value = "/captcha", method = HttpMethod.GET)
 	public void show_captcha(Request request, Response response){
-		PatchcaService.get().size(200, 40).render(request, response);
+		patchca.render(request, response);
 	}
 	
 	/**
@@ -171,8 +163,8 @@ public class UserController extends BaseController {
 			response.text("0");
 			return;
 		}
-		
-		Long notices = noticeService.getNotices(user.getUid());
+
+		Integer notices = noticeService.getNotices(user.getUid());
 		response.text(notices.toString());
 	}
 	
@@ -189,11 +181,11 @@ public class UserController extends BaseController {
 		
 		Integer page = request.queryAsInt("p");
 		
-		Page<Map<String, Object>> noticePage = noticeService.getNoticePage(user.getUid(), page, 10);
+		Paginator<Map<String, Object>> noticePage = noticeService.getNoticePage(user.getUid(), page, 10);
 		request.attribute("noticePage", noticePage);
 		
 		// 清空我的通知
-		if(null != noticePage && noticePage.getResults().size() > 0){
+		if(null != noticePage && noticePage.getList().size() > 0){
 			noticeService.read(user.getUid());
 		}
 		
@@ -251,16 +243,16 @@ public class UserController extends BaseController {
 			return this.getView("signup");
 		}
 		
-		QueryParam queryParam = QueryParam.me();
+		Take queryParam = new Take(User.class);
 		queryParam.eq("login_name", login_name);
-		queryParam.in("status", AR.in(0, 1));
+		queryParam.in("status", Arrays.asList(0, 1));
 		User user = userService.getUser(queryParam);
 		if(null != user){
 			request.attribute(this.ERROR, "该用户名已经被占用，请更换用户名");
 			return this.getView("signup");
 		}
 		
-		queryParam = QueryParam.me();
+		queryParam = new Take(User.class);
 		queryParam.eq("email", email);
 		queryParam.in("status", 0, 1);
 		user = userService.getUser(queryParam);
@@ -268,29 +260,33 @@ public class UserController extends BaseController {
 			request.attribute(this.ERROR, "该邮箱已经被注册，请直接登录");
 			return this.getView("signup");
 		}
-		
-		User user_ = userService.signup(login_name, pass_word, email);
-		if(null != user_){
-			userlogService.save(user_.getUid(), Actions.SIGNUP, login_name + ":" + email);
-			request.attribute(this.INFO, "注册成功，已经向您的邮箱 " + email + " 发送了一封激活申请，请注意查收！");
-		} else {
-			request.attribute(this.ERROR, "注册发生异常");
+
+		try {
+			User user_ = userService.signup(login_name, pass_word, email);
+			if(null != user_){
+				userlogService.save(user_.getUid(), Actions.SIGNUP, login_name + ":" + email);
+				request.attribute(this.INFO, "注册成功，已经向您的邮箱 " + email + " 发送了一封激活申请，请注意查收！");
+			} else {
+				request.attribute(this.ERROR, "注册发生异常");
+			}
+			return this.getView("signup");
+		} catch (Exception e){
+			return null;
 		}
-		return this.getView("signup");
 	}
 	
 	/**
 	 * 激活账户
 	 */
 	@Route(value = "/active/:code", method = HttpMethod.GET)
-	public ModelAndView activeAccount(@PathVariable("code") String code, Request request, Response response){
+	public ModelAndView activeAccount(@PathParam("code") String code, Request request, Response response){
 		Activecode activecode = activecodeService.getActivecode(code);
 		if(null == activecode){
 			request.attribute(this.ERROR, "无效的激活码");
 			return this.getView("info");
 		}
 		
-		Long expries = activecode.getExpires_time();
+		Integer expries = activecode.getExpires_time();
 		if(expries < DateKit.getCurrentUnixTime()){
 			request.attribute(this.ERROR, "该激活码已经过期，请重新发送");
 			return this.getView("info");
@@ -345,7 +341,7 @@ public class UserController extends BaseController {
 			return this.getView("forgot");
 		}
 		
-		User user = userService.getUser(QueryParam.me().eq("email", email));
+		User user = userService.getUser(new Take(User.class).eq("email", email));
 		if(null == user){
 			request.attribute(this.ERROR, "该邮箱没有注册账户,请检查您的邮箱是否正确");
 			request.attribute("email", email);
@@ -396,8 +392,8 @@ public class UserController extends BaseController {
 			request.attribute(this.ERROR, "无效的激活码");
 			return this.getView("reset_pwd");
 		}
-		
-		Long expries = activecode.getExpires_time();
+
+		Integer expries = activecode.getExpires_time();
 		if(expries < DateKit.getCurrentUnixTime()){
 			request.attribute(this.ERROR, "该激活码已经过期，请重新发送");
 			return this.getView("reset_pwd");
@@ -429,10 +425,10 @@ public class UserController extends BaseController {
 	 * 用户主页
 	 */
 	@Route(value = "/member/:username")
-	public ModelAndView member(@PathVariable("username") String username,
+	public ModelAndView member(@PathParam("username") String username,
 			Request request, Response response){
-		
-		QueryParam up = QueryParam.me();
+
+		Take up = new Take(User.class);
 		up.eq("status", 1).eq("login_name", username);
 		
 		User user = userService.getUser(up);
@@ -456,15 +452,15 @@ public class UserController extends BaseController {
 		}
 		
 		// 最新创建的主题
-		QueryParam tp = QueryParam.me();
+		Take tp = new Take(Topic.class);
 		tp.eq("status", 1).eq("uid", user.getUid()).orderby("create_time desc, update_time desc").page(1, 10);
-		Page<Map<String, Object>> topicPage = topicService.getPageList(tp);
+		Paginator<Map<String, Object>> topicPage = topicService.getPageList(tp);
 		request.attribute("topicPage", topicPage);
 		
 		// 最新发布的回复
-		QueryParam cp = QueryParam.me();
+		Take cp = new Take(Comment.class);
 		cp.eq("uid", user.getUid()).orderby("create_time desc").page(1, 10);
-		Page<Map<String, Object>> commentPage = commentService.getPageListMap(cp);
+		Paginator<Map<String, Object>> commentPage = commentService.getPageListMap(cp);
 		request.attribute("commentPage", commentPage);
 		
 		return this.getView("member_detail");
@@ -484,7 +480,7 @@ public class UserController extends BaseController {
 		
 		Integer page = request.queryAsInt("p");
 		
-		Page<Map<String, Object>> favoritesPage = favoriteService.getMyTopics(user.getUid(), page, 10);
+		Paginator<Map<String, Object>> favoritesPage = favoriteService.getMyTopics(user.getUid(), page, 10);
 		request.attribute("favoritesPage", favoritesPage);
 		
 		return this.getView("my_topics");
@@ -522,7 +518,7 @@ public class UserController extends BaseController {
 		
 		Integer page = request.queryAsInt("p");
 		
-		Page<Map<String, Object>> followingPage = favoriteService.getFollowing(user.getUid(), page, 10);
+		Paginator<Map<String, Object>> followingPage = favoriteService.getFollowing(user.getUid(), page, 10);
 		request.attribute("followingPage", followingPage);
 		
 		return this.getView("following");
@@ -542,7 +538,7 @@ public class UserController extends BaseController {
 		
 		// topic：帖子，node：节点，love：喜欢，following：关注
 		String type = request.query("type");
-		Long event_id = request.queryAsLong("event_id");
+		Integer event_id = request.queryAsInt("event_id");
 		
 		if(StringKit.isBlank(type) || null == event_id || event_id == 0){
 			return;
@@ -594,7 +590,7 @@ public class UserController extends BaseController {
 		// 修改头像
 		if(type.equals("avatar") && StringKit.isNotBlank(avatar)){
 			try {
-				String avatar_path = Blade.me().webRoot() + File.separator + avatar;
+				String avatar_path = Blade.$().webRoot() + File.separator + avatar;
 				userService.updateAvatar(loginUser.getUid(), avatar_path);
 				
 				LoginUser loginUserTemp = userService.getLoginUser(null, loginUser.getUid());

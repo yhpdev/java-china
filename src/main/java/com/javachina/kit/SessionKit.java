@@ -4,15 +4,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-import com.blade.context.BladeWebContext;
-import com.blade.web.http.Request;
-import com.blade.web.http.Response;
-import com.blade.web.http.wrapper.Session;
+import com.blade.context.WebContextHolder;
+import com.blade.kit.AES;
+import com.blade.kit.StringKit;
+import com.blade.mvc.http.Request;
+import com.blade.mvc.http.Response;
+import com.blade.mvc.http.wrapper.Session;
 import com.javachina.Constant;
 import com.javachina.model.LoginUser;
-
-import blade.kit.AES;
-import blade.kit.StringKit;
 
 public class SessionKit {
 
@@ -42,7 +41,7 @@ public class SessionKit {
 	}
 	
 	public static LoginUser getLoginUser() {
-		Session session = BladeWebContext.session();
+		Session session = WebContextHolder.me().getRequest().session();
 		if(null == session){
 			return null;
 		}
@@ -52,7 +51,7 @@ public class SessionKit {
 	
 	private static final int one_month = 30*24*60*60;
 	
-	public static void setCookie(Response response, String cookieName, Long uid) {
+	public static void setCookie(Response response, String cookieName, Integer uid) {
 		if(null != response && StringKit.isNotBlank(cookieName) && null != uid){
 			String val = AES.encrypt(uid+"");
 			
@@ -66,7 +65,7 @@ public class SessionKit {
 			String val = AES.encrypt(value);
 			boolean isSSL = Constant.SITE_URL.startsWith("https");
 			response.removeCookie(cookieName);
-			String path = BladeWebContext.servletContext().getContextPath();
+			String path = WebContextHolder.me().getContext().getContextPath();
 			response.cookie(path, cookieName, val, 604800, isSSL);
 		}
 	}

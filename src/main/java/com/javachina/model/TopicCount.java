@@ -1,78 +1,78 @@
 package com.javachina.model;
 
-import java.io.Serializable;
-
 import com.blade.jdbc.annotation.Table;
 
-@Table(value = "t_topiccount", PK = "tid")
+import java.io.Serializable;
+
+@Table(name = "t_topiccount", pk = "tid")
 public class TopicCount implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private Long tid;
-	private Long views;
-	private Long loves;
-	private Long favorites;
-	private Long sinks;
-	private Long comments;
-	private Long create_time;
+	private Integer tid;
+	private Integer views;
+	private Integer loves;
+	private Integer favorites;
+	private Integer sinks;
+	private Integer comments;
+	private Integer create_time;
 	
 	public TopicCount() {
 	}
 
-	public Long getTid() {
+	public Integer getTid() {
 		return tid;
 	}
 
-	public void setTid(Long tid) {
+	public void setTid(Integer tid) {
 		this.tid = tid;
 	}
 
-	public Long getViews() {
+	public Integer getViews() {
 		return views;
 	}
 
-	public void setViews(Long views) {
+	public void setViews(Integer views) {
 		this.views = views;
 	}
 
-	public Long getLoves() {
+	public Integer getLoves() {
 		return loves;
 	}
 
-	public void setLoves(Long loves) {
+	public void setLoves(Integer loves) {
 		this.loves = loves;
 	}
 
-	public Long getFavorites() {
+	public Integer getFavorites() {
 		return favorites;
 	}
 
-	public void setFavorites(Long favorites) {
+	public void setFavorites(Integer favorites) {
 		this.favorites = favorites;
 	}
 
-	public Long getComments() {
+	public Integer getComments() {
 		return comments;
 	}
 
-	public void setComments(Long comments) {
+	public void setComments(Integer comments) {
 		this.comments = comments;
 	}
 
-	public Long getSinks() {
+	public Integer getSinks() {
 		return sinks;
 	}
 
-	public void setSinks(Long sinks) {
+	public void setSinks(Integer sinks) {
 		this.sinks = sinks;
 	}
 
-	public Long getCreate_time() {
+	public Integer getCreate_time() {
 		return create_time;
 	}
 
-	public void setCreate_time(Long create_time) {
+	public void setCreate_time(Integer create_time) {
 		this.create_time = create_time;
 	}
 	

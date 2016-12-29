@@ -7,11 +7,11 @@ import com.javachina.Constant;
 import com.javachina.service.SendMailService;
 import com.javachina.service.UserlogService;
 
-import blade.kit.http.HttpRequest;
-import blade.kit.json.JSONArray;
-import blade.kit.json.JSONObject;
-import blade.kit.logging.Logger;
-import blade.kit.logging.LoggerFactory;
+import com.blade.kit.http.HttpRequest;
+import com.blade.kit.json.JSONArray;
+import com.blade.kit.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class SendMailServiceImpl implements SendMailService {
@@ -49,7 +49,7 @@ public class SendMailServiceImpl implements SendMailService {
 		
 		LOGGER.info(body);
 		
-		userlogService.save(0L, Actions.SEND_MAIL, email + ":" + code + ":" + "signup");
+		userlogService.save(0, Actions.SEND_MAIL, email + ":" + code + ":" + "signup");
 		
 		LOGGER.info("user {} signup, send mail [{}] success, code = [{}]", username, email, code);
 	}
@@ -79,7 +79,7 @@ public class SendMailServiceImpl implements SendMailService {
 		
 		LOGGER.info(body);
 		
-		userlogService.save(0L, Actions.SEND_MAIL, email + ":" + code + ":" + "forgot");
+		userlogService.save(0, Actions.SEND_MAIL, email + ":" + code + ":" + "forgot");
 		
 		LOGGER.info("user {} forgot, send mail [{}] success, code = [{}]", username, email, code);
 	}

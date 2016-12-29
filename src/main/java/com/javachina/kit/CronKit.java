@@ -3,10 +3,9 @@ package com.javachina.kit;
 import java.io.File;
 
 import com.blade.Blade;
-
-import blade.kit.DateKit;
-import blade.kit.logging.Logger;
-import blade.kit.logging.LoggerFactory;
+import com.blade.kit.DateKit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 定时任务工具类
@@ -20,7 +19,7 @@ public class CronKit {
 	 */
 	public static void backup() throws Exception {  
 		
-		Blade blade = Blade.me();
+		Blade blade = Blade.$();
 		
 	    String sqlpath = "/home/backup/";  
 	    String tableName = "backup-" + DateKit.getToday("yyyy-MM-ddHHmmss");

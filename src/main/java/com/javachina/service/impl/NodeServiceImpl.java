@@ -1,32 +1,34 @@
 package com.javachina.service.impl;
 
+import com.blade.ioc.annotation.Service;
+import com.blade.jdbc.ActiveRecord;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.CollectionKit;
+import com.blade.kit.DateKit;
+import com.blade.kit.FileKit;
+import com.blade.kit.StringKit;
+import com.javachina.ImageTypes;
+import com.javachina.config.DBConfig;
+import com.javachina.kit.QiniuKit;
+import com.javachina.kit.Utils;
+import com.javachina.model.Node;
+import com.javachina.service.NodeService;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.blade.ioc.annotation.Service;
-import com.blade.jdbc.AR;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
-import com.javachina.ImageTypes;
-import com.javachina.kit.QiniuKit;
-import com.javachina.kit.Utils;
-import com.javachina.model.Node;
-import com.javachina.service.NodeService;
-
-import blade.kit.CollectionKit;
-import blade.kit.DateKit;
-import blade.kit.FileKit;
-import blade.kit.StringKit;
-
 @Service
 public class NodeServiceImpl implements NodeService {
-	
+
+	private ActiveRecord activeRecord = DBConfig.activeRecord;
+
 	@Override
-	public Node getNode(Long nid) {
-		Node node = AR.findById(Node.class, nid);
+	public Node getNode(Integer nid) {
+		Node node = activeRecord.byId(Node.class, nid);
 		if(null != node && node.getIs_del() == 0){
 			return node;
 		}
@@ -34,21 +36,21 @@ public class NodeServiceImpl implements NodeService {
 	}
 	
 	@Override
-	public Node getNode(QueryParam queryParam) {
-		return AR.find(queryParam).first(Node.class);
+	public Node getNode(Take take) {
+		return activeRecord.one(take);
 	}
 		
 	@Override
 	public List<Map<String, Object>> getNodeList() {
 		List<Map<String, Object>> result= new ArrayList<Map<String,Object>>();
-		QueryParam np = QueryParam.me();
-		np.eq("is_del", 0).eq("pid", 0).orderby("topics desc");
+		Take np = new Take(Node.class);
+		np.set("is_del", 0).set("pid", 0).orderby("topics desc");
 		List<Node> parents = this.getNodeList(np);
 		for(Node node : parents){
 			Map<String, Object> nodeMap = this.getNodeDetail(node, null);
 			if(null != nodeMap && !nodeMap.isEmpty()){
-				QueryParam cp = QueryParam.me();
-				cp.eq("is_del", 0).eq("pid", node.getNid()).orderby("topics desc");
+				Take cp = new Take(Node.class);
+				cp.set("is_del", 0).set("pid", node.getNid()).orderby("topics desc");
 				List<Node> nodes = this.getNodeList(cp);
 				if(CollectionKit.isNotEmpty(nodes)){
 					List<Map<String, Object>> items = new ArrayList<Map<String,Object>>();
@@ -67,30 +69,30 @@ public class NodeServiceImpl implements NodeService {
 	}
 	
 	@Override
-	public List<Node> getNodeList(QueryParam queryParam) {
-		if(null != queryParam){
-			return AR.find(queryParam).list(Node.class);
+	public List<Node> getNodeList(Take take) {
+		if(null != take){
+			return activeRecord.list(take);
 		}
 		return null;
 	}
 	
 	@Override
-	public Page<Map<String, Object>> getPageList(QueryParam queryParam) {
-		if(null != queryParam){
-			Page<Node> nodePage = AR.find(queryParam).page(Node.class);
+	public Paginator<Map<String, Object>> getPageList(Take take) {
+		if(null != take){
+			Paginator<Node> nodePage = activeRecord.page(take);
 			return this.getNodePageMap(nodePage);
 		}
 		return null;
 	}
 	
-	private Page<Map<String, Object>> getNodePageMap(Page<Node> nodePage){
+	private Paginator<Map<String, Object>> getNodePageMap(Paginator<Node> nodePage){
 		
-		long totalCount = nodePage.getTotalCount();
-		int page = nodePage.getPage();
-		int pageSize = nodePage.getPageSize();
-		Page<Map<String, Object>> result = new Page<Map<String,Object>>(totalCount, page, pageSize);
+		long totalCount = nodePage.getTotal();
+		int page = nodePage.getPages();
+		int pageSize = nodePage.getLimit();
+		Paginator<Map<String, Object>> result = new Paginator<Map<String,Object>>(totalCount, page, pageSize);
 		
-		List<Node> nodes = nodePage.getResults();
+		List<Node> nodes = nodePage.getList();
 		
 		List<Map<String, Object>> nodeMaps = new ArrayList<Map<String,Object>>();
 		if(null != nodes && nodes.size() > 0){
@@ -102,17 +104,27 @@ public class NodeServiceImpl implements NodeService {
 			}
 		}
 		
-		result.setResults(nodeMaps);
+		result.setList(nodeMaps);
 		
 		return result;
 	}
 	
 	@Override
-	public boolean save(Long pid, String title, String description, String slug, String node_pic) {
+	public boolean save(Integer pid, String title, String description, String slug, String node_pic) {
 		try {
 			Integer time = DateKit.getCurrentUnixTime();
-			AR.update("insert into t_node(pid, title, description, slug, pic, create_time, update_time) values (?, ?, ?, ?, ?, ?, ?)",
-					pid, title, description, slug, node_pic, time, time).executeUpdate();
+
+			Node node = new Node();
+			node.setPid(pid);
+			node.setTitle(title);
+			node.setDescription(description);
+			node.setSlug(slug);
+			node.setPic(node_pic);
+			node.setCreate_time(time);
+			node.setUpdate_time(time);
+
+			activeRecord.insert(node);
+
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -121,16 +133,19 @@ public class NodeServiceImpl implements NodeService {
 	}
 	
 	@Override
-	public boolean delete(Long nid) {
+	public boolean delete(Integer nid) {
 		if(null != nid){
-			AR.update("update t_node set is_del = 1 where nid = ?", nid).executeUpdate(true);
+			Node temp = new Node();
+			temp.setNid(nid);
+			temp.setIs_del(1);
+			activeRecord.update(temp);
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public Map<String, Object> getNodeDetail(Node node, Long nid) {
+	public Map<String, Object> getNodeDetail(Node node, Integer nid) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(null == node){
 			node = this.getNode(nid);
@@ -150,7 +165,7 @@ public class NodeServiceImpl implements NodeService {
 			}
 			
 			// 查询子节点数
-			Long childs = getNodeCount(node.getNid());
+			Integer childs = getNodeCount(node.getNid());
 			map.put("childs", childs);
 			map.put("description", node.getDescription());
 			if(StringKit.isNotBlank(node.getPic())){
@@ -161,16 +176,19 @@ public class NodeServiceImpl implements NodeService {
 		return map;
 	}
 	
-	private Long getNodeCount(Long nid){
-		return AR.find("select count(1) from t_node where pid = ? and is_del = 0", nid).first(Long.class);
+	private Integer getNodeCount(Integer nid){
+		Node node = new Node();
+		node.setPid(nid);
+		node.setIs_del(0);
+		return activeRecord.count(node);
 	}
 
 	@Override
-	public boolean updateCount(Long nid, String type, int count) {
+	public boolean updateCount(Integer nid, String type, int count) {
 		if(null != nid && StringKit.isNotBlank(type)){
 			try {
-				String sql = "update t_node set %s = (%s + ?) where nid = ?";
-				AR.update(String.format(sql, type, type), count, nid).executeUpdate();
+				String sql = "update t_node set %s = (%s + "+count+") where nid = " + nid;
+				activeRecord.execute(String.format(sql, type, type));
 				return true;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -180,7 +198,7 @@ public class NodeServiceImpl implements NodeService {
 	}
 
 	@Override
-	public boolean update(Long nid, Long pid, String title, String description, String node_slug,
+	public boolean update(Integer nid, Integer pid, String title, String description, String node_slug,
 			String node_pic) {
 		try {
 			if(null == nid){
@@ -226,9 +244,9 @@ public class NodeServiceImpl implements NodeService {
 			
 			updateSql.append(" where nid = ?");
 			params.add(nid);
-			
-			AR.update(updateSql.toString(), params.toArray()).executeUpdate();
-			
+
+			activeRecord.execute(updateSql.toString(), params.toArray());
+
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();

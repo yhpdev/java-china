@@ -1,23 +1,22 @@
 package com.javachina.controller;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import com.blade.Blade;
 import com.blade.ioc.annotation.Inject;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
-import com.blade.route.annotation.Path;
-import com.blade.route.annotation.PathVariable;
-import com.blade.route.annotation.Route;
-import com.blade.view.ModelAndView;
-import com.blade.web.http.HttpMethod;
-import com.blade.web.http.Request;
-import com.blade.web.http.Response;
-import com.blade.web.multipart.FileItem;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.DateKit;
+import com.blade.kit.FileKit;
+import com.blade.kit.PatternKit;
+import com.blade.kit.StringKit;
+import com.blade.kit.json.JSONObject;
+import com.blade.mvc.annotation.Controller;
+import com.blade.mvc.annotation.PathParam;
+import com.blade.mvc.annotation.Route;
+import com.blade.mvc.http.HttpMethod;
+import com.blade.mvc.http.Request;
+import com.blade.mvc.http.Response;
+import com.blade.mvc.multipart.FileItem;
+import com.blade.mvc.view.ModelAndView;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.kit.FamousDay;
@@ -34,13 +33,14 @@ import com.redfin.sitemapgenerator.ChangeFreq;
 import com.redfin.sitemapgenerator.WebSitemapGenerator;
 import com.redfin.sitemapgenerator.WebSitemapUrl;
 
-import blade.kit.DateKit;
-import blade.kit.FileKit;
-import blade.kit.PatternKit;
-import blade.kit.StringKit;
-import blade.kit.json.JSONObject;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
-@Path("/")
+
+@Controller("/")
 public class IndexController extends BaseController {
 
 	@Inject
@@ -66,10 +66,10 @@ public class IndexController extends BaseController {
 		// 帖子
 		String tab = request.query("tab");
 		Integer page = request.queryAsInt("p");
-		Long nid = null;
+		Integer nid = null;
 		
 		if(StringKit.isNotBlank(tab)){
-			QueryParam np = QueryParam.me();
+			Take np = new Take(Node.class);
 			np.eq("is_del", 0).eq("slug", tab);
 			Node node = nodeService.getNode(np);
 			if(null != node){
@@ -79,16 +79,16 @@ public class IndexController extends BaseController {
 			}
 		}
 		
-		Page<Map<String, Object>> topicPage = topicService.getHotTopic(nid, page, 20);
+		Paginator<Map<String, Object>> topicPage = topicService.getHotTopic(nid, page, 20);
 		request.attribute("topicPage", topicPage);
 		
 		// 最热帖子
-		List<Map<String, Object>> hot_topics = topicService.getHotTopic(null, 1, 10).getResults();
+		List<Map<String, Object>> hot_topics = topicService.getHotTopic(null, 1, 10).getList();
 		request.attribute("hot_topics", hot_topics);
 		
 		// 最热门的8个节点
-		QueryParam np = QueryParam.me();
-		np.eq("is_del", 0).notEq("pid", 0).orderby("topics desc").add("limit 8");
+		Take np = new Take(Node.class);
+		np.eq("is_del", 0).notEq("pid", 0).page(1, 8, "topics desc");
 		List<Node> hot_nodes = nodeService.getNodeList(np);
 		request.attribute("hot_nodes", hot_nodes);
 		
@@ -106,10 +106,10 @@ public class IndexController extends BaseController {
 		// 帖子
 		String tab = request.query("tab");
 		Integer page = request.queryAsInt("p");
-		Long nid = null;
+		Integer nid = null;
 		
 		if(StringKit.isNotBlank(tab)){
-			QueryParam np = QueryParam.me();
+			Take np = new Take(Node.class);
 			np.eq("is_del", 0).eq("slug", tab);
 			Node node = nodeService.getNode(np);
 			if(null != node){
@@ -119,16 +119,16 @@ public class IndexController extends BaseController {
 			}
 		}
 		
-		Page<Map<String, Object>> topicPage = topicService.getRecentTopic(nid, page, 15);
+		Paginator<Map<String, Object>> topicPage = topicService.getRecentTopic(nid, page, 15);
 		request.attribute("topicPage", topicPage);
 				
 		// 最热帖子
-		List<Map<String, Object>> hot_topics = topicService.getHotTopic(null, 1, 10).getResults();
+		List<Map<String, Object>> hot_topics = topicService.getHotTopic(null, 1, 10).getList();
 		request.attribute("hot_topics", hot_topics);
 		
 		// 最热门的10个节点
-		QueryParam np = QueryParam.me();
-		np.eq("is_del", 0).notEq("pid", 0).orderby("topics desc").add("limit 8");
+		Take np = new Take(Node.class);
+		np.eq("is_del", 0).notEq("pid", 0).page(1, 8, "topics desc");
 		List<Node> hot_nodes = nodeService.getNodeList(np);
 		request.attribute("hot_nodes", hot_nodes);
 		
@@ -149,11 +149,11 @@ public class IndexController extends BaseController {
 	 * 节点主题页
 	 */
 	@Route(value = "/go/:slug", method = HttpMethod.GET)
-	public ModelAndView go(@PathVariable("slug") String slug,
+	public ModelAndView go(@PathParam("slug") String slug,
 			Request request, Response response){
 		
 		LoginUser loginUser = SessionKit.getLoginUser();
-		QueryParam np = QueryParam.me();
+		Take np = new Take(Node.class);
 		np.eq("is_del", 0).eq("slug", slug);
 		Node node = nodeService.getNode(np);
 		if(null == node){
@@ -173,7 +173,7 @@ public class IndexController extends BaseController {
 		
 		Integer page = request.queryAsInt("page");
 		
-		Page<Map<String, Object>> topicPage = topicService.getRecentTopic(node.getNid(), page, 15);
+		Paginator<Map<String, Object>> topicPage = topicService.getRecentTopic(node.getNid(), page, 15);
 		request.attribute("topicPage", topicPage);
 		
 		Map<String, Object> nodeMap = nodeService.getNodeDetail(null, node.getNid());
@@ -198,7 +198,7 @@ public class IndexController extends BaseController {
 			FileItem fileItem = fileItems[0];
 			
 			String type = request.query("type");
-			String suffix = FileKit.getExtension(fileItem.getFileName());
+			String suffix = FileKit.getExtension(fileItem.fileName());
 			if(StringKit.isNotBlank(suffix)){
 				suffix = "." + suffix;
 			}
@@ -211,11 +211,11 @@ public class IndexController extends BaseController {
 			}
 			
 			String saveName = DateKit.dateFormat(new Date(), "yyyyMMddHHmmssSSS")  + "_" + StringKit.getRandomChar(10) + suffix;
-			File file = new File(Blade.me().webRoot() + File.separator + Constant.UPLOAD_FOLDER + File.separator + saveName);
+			File file = new File(Blade.$().webRoot() + File.separator + Constant.UPLOAD_FOLDER + File.separator + saveName);
 			
 			try {
-				
-				Utils.copyFileUsingFileChannels(fileItem.getFile(), file);
+
+				Utils.copyFileUsingFileChannels(fileItem.file(), file);
 				
 				String filePath = Constant.UPLOAD_FOLDER + "/" + saveName;
 				
@@ -292,8 +292,8 @@ public class IndexController extends BaseController {
 			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/about").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
 			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/donate").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
 			
-			List<Long> tids = topicService.topicIds();
-			for(Long tid : tids){
+			List<Integer> tids = topicService.topicIds();
+			for(Integer tid : tids){
 				WebSitemapUrl url = new WebSitemapUrl.Options(Constant.SITE_URL + "/topic/" + tid).lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.DAILY).build();
 				wsg.addUrl(url);
 			}

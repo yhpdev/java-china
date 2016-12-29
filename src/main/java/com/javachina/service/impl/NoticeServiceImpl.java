@@ -1,17 +1,14 @@
 package com.javachina.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
-import com.blade.jdbc.AR;
-import com.blade.jdbc.Page;
-import com.blade.jdbc.QueryParam;
+import com.blade.jdbc.ActiveRecord;
+import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.Paginator;
+import com.blade.kit.DateKit;
+import com.blade.kit.StringKit;
 import com.javachina.Types;
-import com.javachina.kit.DateKit;
+import com.javachina.config.DBConfig;
 import com.javachina.kit.Utils;
 import com.javachina.model.Comment;
 import com.javachina.model.Notice;
@@ -22,11 +19,16 @@ import com.javachina.service.NoticeService;
 import com.javachina.service.TopicService;
 import com.javachina.service.UserService;
 
-import blade.kit.StringKit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class NoticeServiceImpl implements NoticeService {
-	
+
+	private ActiveRecord activeRecord = DBConfig.activeRecord;
+
 	@Inject
 	private TopicService topicService;
 	
@@ -37,17 +39,24 @@ public class NoticeServiceImpl implements NoticeService {
 	private CommentService commentService;
 	
 	@Override
-	public boolean save(String type, Long to_uid, Long event_id) {
+	public boolean save(String type, Integer to_uid, Integer event_id) {
 		if(StringKit.isNotBlank(type) && null != to_uid && null != event_id){
-			AR.update("insert into t_notice(type, to_uid, event_id, create_time) values(?, ?, ?, ?)", type,
-					to_uid, event_id, DateKit.getCurrentUnixTime()).executeUpdate();
+
+			Notice notice = new Notice();
+			notice.setType(type);
+			notice.setTo_uid(to_uid);
+			notice.setEvent_id(event_id);
+			notice.setCreate_time(DateKit.getCurrentUnixTime());
+
+			activeRecord.insert(notice);
+
 			return true;
 		}
 		return false;
 	}
 	
 	@Override
-	public Page<Map<String, Object>> getNoticePage(Long uid, Integer page, Integer count) {
+	public Paginator<Map<String, Object>> getNoticePage(Integer uid, Integer page, Integer count) {
 		if(null != uid){
 			if(null == page || page < 1){
 				page = 1;
@@ -55,21 +64,21 @@ public class NoticeServiceImpl implements NoticeService {
 			if(null == count || count < 1){
 				count = 10;
 			}
-			QueryParam queryParam = QueryParam.me();
-			queryParam.eq("to_uid", uid).orderby("id desc").page(page, count);
-			Page<Notice> noticePage = AR.find(queryParam).page(Notice.class);
+			Take take = new Take(Notice.class);
+			take.eq("to_uid", uid).page(page, count, "id desc");
+			Paginator<Notice> noticePage = activeRecord.page(take);
 			return this.getNoticePageMap(noticePage);
 		}
 		return null;
 	}
 	
-	private Page<Map<String, Object>> getNoticePageMap(Page<Notice> noticePage){
-		long totalCount = noticePage.getTotalCount();
-		int page = noticePage.getPage();
-		int pageSize = noticePage.getPageSize();
-		Page<Map<String, Object>> pageResult = new Page<Map<String,Object>>(totalCount, page, pageSize);
+	private Paginator<Map<String, Object>> getNoticePageMap(Paginator<Notice> noticePage){
+		long totalCount = noticePage.getTotal();
+		int page = noticePage.getPageNum();
+		int pageSize = noticePage.getLimit();
+		Paginator<Map<String, Object>> pageResult = new Paginator<Map<String,Object>>(totalCount, page, pageSize);
 		
-		List<Notice> notices = noticePage.getResults();
+		List<Notice> notices = noticePage.getList();
 		
 		List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
 		if(null != notices){
@@ -80,7 +89,7 @@ public class NoticeServiceImpl implements NoticeService {
 				}
 			}
 		}
-		pageResult.setResults(result);
+		pageResult.setList(result);
 		
 		return pageResult;
 	}
@@ -90,7 +99,7 @@ public class NoticeServiceImpl implements NoticeService {
 			return null;
 		}
 		Map<String, Object> map = new HashMap<String, Object>();
-		Long uid = notice.getTo_uid();
+		Integer uid = notice.getTo_uid();
 		User user = userService.getUser(uid);
 		if(null == user){
 			return null;
@@ -130,12 +139,14 @@ public class NoticeServiceImpl implements NoticeService {
 	}
 
 	@Override
-	public boolean read(Long to_uid) {
+	public boolean read(Integer to_uid) {
 		if(null != to_uid){
 			// 删除
 			try {
-				AR.update("update t_notice set is_read = 1 where to_uid = ?", to_uid).executeUpdate(true);
-				return true;
+				Notice notice = new Notice();
+				notice.setTo_uid(to_uid);
+				notice.setIs_read(true);
+				return activeRecord.update(notice) > 0;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -144,11 +155,14 @@ public class NoticeServiceImpl implements NoticeService {
 	}
 
 	@Override
-	public Long getNotices(Long uid) {
+	public Integer getNotices(Integer uid) {
 		if(null != uid){
-			return AR.find("select count(1) from t_notice where to_uid = ? and is_read = 0", uid).first(Long.class);
+			Notice notice = new Notice();
+			notice.setTo_uid(uid);
+			notice.setIs_read(false);
+			return activeRecord.count(notice);
 		}
-		return 0L;
+		return 0;
 	}
 
 }
