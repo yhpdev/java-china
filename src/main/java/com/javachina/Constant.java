@@ -1,6 +1,5 @@
 package com.javachina;
 
-import com.blade.Blade;
 import com.blade.kit.base.Config;
 import jetbrick.template.JetGlobalContext;
 
@@ -9,7 +8,7 @@ import java.util.Map;
 
 public class Constant {
 
-	public static Config config = Blade.$().config();
+	public static Config config;
 
 	/**
 	 * 登录用户session key
@@ -21,25 +20,24 @@ public class Constant {
 	public static final String USER_IN_COOKIE = "SH_SIGNIN_USER";
 	public static final String JC_REFERRER_COOKIE = "JC_REFERRER_COOKIE";
 
-	public static String SITE_URL = config.get("app.site_url");
-	public static String CDN_URL = config.get("app.cdn_url");
+	public static String SITE_URL;
+	public static String CDN_URL;
 
 	/**
 	 * github密钥配置
 	 */
-	public static String GITHUB_CLIENT_ID = config.get("github.client_id");
-	public static String GITHUB_CLIENT_SECRET = config.get("github.client_secret");
-	public static String GITHUB_REDIRECT_URL = config.get("github.redirect_url");
+	public static String GITHUB_CLIENT_ID;
+	public static String GITHUB_CLIENT_SECRET;
+	public static String GITHUB_REDIRECT_URL;
 
 	/**
 	 * 邮件配置
 	 */
-	public static String MAIL_HOST = config.get("mail.smtp.host");
-	public static String MAIL_USER = config.get("mail.user");
-	public static String MAIL_USERNAME = config.get("mail.from");
-	public static String MAIL_PASS = config.get("mail.pass");
-	public static int MIAL_PORT = config.getInt("mail.smtp.port");
-	
+	public static String MAIL_HOST;
+	public static String MAIL_USER;
+	public static String MAIL_USERNAME;
+	public static String MAIL_PASS;
+
 	public static JetGlobalContext VIEW_CONTEXT = null;
 	public static Map<String, Object> SYS_INFO = new HashMap<>();
 
