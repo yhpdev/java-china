@@ -5,10 +5,7 @@ import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
-import com.blade.kit.DateKit;
-import com.blade.kit.EncrypKit;
-import com.blade.kit.FileKit;
-import com.blade.kit.StringKit;
+import com.blade.kit.*;
 import com.javachina.ImageTypes;
 import com.javachina.Types;
 import com.javachina.config.DBConfig;
@@ -27,7 +24,8 @@ import java.util.Map;
 @Service
 public class UserServiceImpl implements UserService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Inject
 	private ActivecodeService activecodeService;
@@ -49,6 +47,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public User getUser(Integer uid) {
+		if(null == uid){
+			return null;
+		}
 		return activeRecord.byId(User.class, uid);
 	}
 
@@ -139,14 +140,18 @@ public class UserServiceImpl implements UserService {
 	public Map<String, Object> getUserDetail(Integer uid) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(null != uid){
-			String sql = "select a.login_name as username, a.uid, a.email, a.avatar, a.create_time, b.* from t_user a left join t_userinfo b on a.uid = b.uid " +
-					"where a.uid = ?";
 
-			map = activeRecord.map(sql, uid);
-			if(null != map){
-				String avatar = Utils.getAvatar(map.get("avatar").toString(), ImageTypes.normal);
-				map.put("avatar", avatar);
-			}
+			User user = activeRecord.byId(User.class, uid);
+			Userinfo userinfo = activeRecord.byId(Userinfo.class, uid);
+
+			map = BeanKit.beanToMap(userinfo);
+			map.put("username", user.getLogin_name());
+			map.put("uid", uid);
+			map.put("email", user.getEmail());
+			map.put("avatar", user.getAvatar());
+			map.put("create_time", user.getCreate_time());
+			String avatar = Utils.getAvatar(user.getAvatar(), ImageTypes.normal);
+			map.put("avatar", avatar);
 		}
 		return map;
 	}

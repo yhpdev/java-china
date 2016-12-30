@@ -24,15 +24,19 @@ import com.javachina.kit.SessionKit;
 import com.javachina.kit.Utils;
 import com.javachina.model.*;
 import com.javachina.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-@Controller("/")
+@Controller
 public class UserController extends BaseController {
-	
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+
 	@Inject
 	private SettingsService settingsService;
 	
@@ -302,16 +306,19 @@ public class UserController extends BaseController {
 			request.attribute("code", code);
 			return this.getView("reset_pwd");
 		}
-		
-		boolean flag = userService.updateStatus(activecode.getUid(), 1);
-		if(!flag){
+
+		try {
+			userService.updateStatus(activecode.getUid(), 1);
 			activecodeService.useCode(code);
-			request.attribute(this.ERROR, "激活失败");
-		} else {
+
 			request.attribute(this.INFO, "激活成功，您可以凭密码登陆");
 			settingsService.updateCount(Types.user_count.toString(), +1);
 			Constant.SYS_INFO = settingsService.getSystemInfo();
 			Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
+
+		} catch (Exception e){
+			LOGGER.error("激活失败", e);
+			request.attribute(this.ERROR, "激活失败");
 		}
 		return this.getView("active");
 	}
@@ -352,13 +359,16 @@ public class UserController extends BaseController {
 			request.attribute("email", email);
 			return this.getView("forgot");
 		}
-		String code = activecodeService.save(user, "forgot");
-		if(StringKit.isNotBlank(code)){
-			request.attribute(this.INFO, "修改密码链接已经发送到您的邮箱，请注意查收！");
-		} else {
-			request.attribute(this.ERROR, "找回密码失败");
+		try {
+			String code = activecodeService.save(user, "forgot");
+			if(StringKit.isNotBlank(code)){
+				request.attribute(this.INFO, "修改密码链接已经发送到您的邮箱，请注意查收！");
+			} else {
+				request.attribute(this.ERROR, "找回密码失败");
+			}
+		} catch (Exception e){
+			LOGGER.error("找回密码失败", e);
 		}
-		
 		return this.getView("forgot");
 	}
 	
@@ -411,11 +421,13 @@ public class UserController extends BaseController {
 		}
 		
 		String new_pwd = EncrypKit.md5(user.getLogin_name() + password);
-		boolean flag = userService.updatePwd(user.getUid(), new_pwd);
-		if(flag){
+
+		try {
+			userService.updatePwd(user.getUid(), new_pwd);
 			activecodeService.useCode(code);
 			request.attribute(this.INFO, "密码修改成功，您可以直接登录！");
-		} else {
+		} catch (Exception e){
+			LOGGER.error("密码修改失败", e);
 			request.attribute(this.ERROR, "密码修改失败");
 		}
 		return this.getView("reset_pwd");

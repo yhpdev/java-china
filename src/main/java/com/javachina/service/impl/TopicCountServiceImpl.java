@@ -1,30 +1,31 @@
 package com.javachina.service.impl;
 
+import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
-import com.javachina.config.DBConfig;
+import com.javachina.exception.TipException;
 import com.javachina.model.TopicCount;
 import com.javachina.service.TopicCountService;
 
 @Service
 public class TopicCountServiceImpl implements TopicCountService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Override
-	public boolean update(String type, Integer tid, int count) {
+	public void update(String type, Integer tid, int count) throws Exception {
 		if(StringKit.isBlank(type) || null == tid){
-			return false;
+			throw new TipException("帖子id为空");
 		}
-		TopicCount topicCount = this.getCount(tid);
-		if(null != topicCount){
+		try {
 			String sql = String.format("update t_topiccount set %s = (%s + "+count+") where tid = " + tid, type, type);
 			activeRecord.execute(sql);
-			return true;
+		} catch (Exception e){
+			throw e;
 		}
-		return false;
 	}
 
 	@Override
@@ -36,10 +37,10 @@ public class TopicCountServiceImpl implements TopicCountService {
 	}
 
 	@Override
-	public boolean save(Integer tid, Integer create_time) {
+	public void save(Integer tid, Integer create_time) throws Exception {
 		try {
 			if(null == tid || tid < 1){
-				return false;
+				throw new TipException("帖子id为空");
 			}
 			TopicCount topicCount = new TopicCount();
 			topicCount.setTid(tid);
@@ -49,11 +50,9 @@ public class TopicCountServiceImpl implements TopicCountService {
 			topicCount.setSinks(0);
 			topicCount.setCreate_time(DateKit.getCurrentUnixTime());
 			activeRecord.insert(topicCount);
-			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		}
-		return false;
 	}
 
 }

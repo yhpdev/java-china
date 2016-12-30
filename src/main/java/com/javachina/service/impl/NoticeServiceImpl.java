@@ -27,7 +27,8 @@ import java.util.Map;
 @Service
 public class NoticeServiceImpl implements NoticeService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Inject
 	private TopicService topicService;

@@ -11,27 +11,23 @@ public interface TopicService {
 	
 	Topic getTopic(Integer tid);
 	
-	List<Integer> topicIds();
-	
 	Map<String, Object> getTopicMap(Topic topic, boolean isDetail);
-	
-	List<Map<String, Object>> getTopicList(Take take);
 	
 	Paginator<Map<String, Object>> getPageList(Take queryParam);
 
-	Integer save(Integer uid, Integer nid, String title, String content, Integer isTop);
+	Integer save(Topic topic) throws Exception;
 
 	Integer update(Integer tid, Integer nid, String title, String content);
 	
 	boolean comment(Integer uid, Integer to_uid, Integer tid, String content, String ua);
 	
-	boolean delete(Integer tid);
+	void delete(Integer tid) throws Exception;
 	
-	boolean refreshWeight();
-	
-	boolean updateWeight(Integer tid);
-	
-	boolean updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time);
+	void refreshWeight() throws Exception;
+
+	void updateWeight(Integer tid) throws Exception;
+
+	void updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time) throws Exception;
 
 	Integer getTopics(Integer uid);
 

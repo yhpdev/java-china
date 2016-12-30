@@ -20,27 +20,26 @@ import com.blade.mvc.view.ModelAndView;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.kit.FamousDay;
-import com.javachina.kit.FamousKit;
+import com.javachina.kit.MailKit;
 import com.javachina.kit.SessionKit;
 import com.javachina.kit.Utils;
 import com.javachina.model.LoginUser;
 import com.javachina.model.Node;
+import com.javachina.model.NodeTree;
 import com.javachina.service.FavoriteService;
 import com.javachina.service.NodeService;
 import com.javachina.service.NoticeService;
 import com.javachina.service.TopicService;
-import com.redfin.sitemapgenerator.ChangeFreq;
-import com.redfin.sitemapgenerator.WebSitemapGenerator;
-import com.redfin.sitemapgenerator.WebSitemapUrl;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-
-@Controller("/")
+/**
+ * 首页控制器
+ */
+@Controller
 public class IndexController extends BaseController {
 
 	@Inject
@@ -134,15 +133,23 @@ public class IndexController extends BaseController {
 		
 		return this.getView("recent");
 	}
-	
+
+	/**
+	 * 放置节点
+	 *
+	 * @param request
+     */
 	private void putData(Request request){
+
 		// 读取节点列表
-		List<Map<String, Object>> nodes = nodeService.getNodeList();
+		List<NodeTree> nodes = nodeService.getTree();
 		request.attribute("nodes", nodes);
-		
-		// 每日格言
-		FamousDay famousDay = FamousKit.getTodayFamous();
-		Constant.VIEW_CONTEXT.set("famousDay", famousDay);
+
+		if(null == Constant.VIEW_CONTEXT.getValue("famousDay")){
+			// 每日格言
+			FamousDay famousDay = Utils.getTodayFamous();
+			Constant.VIEW_CONTEXT.set("famousDay", famousDay);
+		}
 	}
 	
 	/**
@@ -279,29 +286,9 @@ public class IndexController extends BaseController {
 	/**
 	 * sitemap页面
 	 */
-	@Route(value = "/sitemap.xml", method = HttpMethod.GET)
+	@Route(value = "/mailtest", method = HttpMethod.GET)
 	public void sitemap(Request request, Response response){
-		try {
-			WebSitemapGenerator wsg = new WebSitemapGenerator(Constant.SITE_URL);
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL).lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.ALWAYS).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/markdown").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/essence").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/signup").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/signin").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/faq").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/about").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			wsg.addUrl(new WebSitemapUrl.Options(Constant.SITE_URL + "/donate").lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.MONTHLY).build());
-			
-			List<Integer> tids = topicService.topicIds();
-			for(Integer tid : tids){
-				WebSitemapUrl url = new WebSitemapUrl.Options(Constant.SITE_URL + "/topic/" + tid).lastMod(new Date()).priority(0.8).changeFreq(ChangeFreq.DAILY).build();
-				wsg.addUrl(url);
-			}
-			
-			response.xml(wsg.writeAsStrings().get(0));
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
+		MailKit.send("测试", "renqi@laicaijie.com", "这啊实打实大撒的");
 	}
 	
 }

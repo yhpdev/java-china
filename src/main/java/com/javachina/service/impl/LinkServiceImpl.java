@@ -1,5 +1,6 @@
 package com.javachina.service.impl;
 
+import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.DateKit;
@@ -10,7 +11,8 @@ import com.javachina.service.LinkService;
 @Service
 public class LinkServiceImpl implements LinkService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 	
 	@Override
 	public boolean save(String title, String url) {

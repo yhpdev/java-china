@@ -18,6 +18,8 @@ import com.javachina.controller.BaseController;
 import com.javachina.model.Node;
 import com.javachina.model.User;
 import com.javachina.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -25,6 +27,8 @@ import java.util.Map;
 
 @Controller("/admin/")
 public class IndexController extends BaseController {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(IndexController.class);
 
 	@Inject
 	private TopicService topicService;
@@ -100,17 +104,19 @@ public class IndexController extends BaseController {
 			request.attribute("node_slug", node_slug);
 			return this.getAdminView("add_node");
 		}
-		
-		boolean flag = nodeService.save(pid, title, description, node_slug, node_pic);
-		if(flag){
+
+		Node node = new Node();
+
+		try {
+			nodeService.save(node);
 			response.go("/admin/nodes");
-			return null;
-		} else {
+		} catch (Exception e){
+			LOGGER.error("添加节点失败", e);
 			request.attribute(this.ERROR, "节点添加失败");
 			request.attribute("node_name", title);
 			request.attribute("node_slug", node_slug);
-			return this.getAdminView("add_node");
 		}
+		return this.getAdminView("add_node");
 	}
 	
 	/**
@@ -139,16 +145,23 @@ public class IndexController extends BaseController {
 		String node_pic = request.query("node_pic");
 		
 		if(StringKit.isNotBlank(node_pic)){
-			node_pic = Blade.me().webRoot() + File.separator + node_pic;
+			node_pic = Blade.$().webRoot() + File.separator + node_pic;
 		}
 		
-		boolean flag = nodeService.update(nid, pid, title, description, node_slug, node_pic);
-		if(flag){
+		try {
+			Node node = new Node();
+			node.setNid(nid);
+			node.setPid(pid);
+			node.setTitle(title);
+			node.setDescription(description);
+			node.setSlug(node_slug);
+			node.setPic(node_pic);
+			nodeService.update(node);
 			this.success(response, "");
-		} else {
+		} catch (Exception e){
+			LOGGER.error("节点修改失败", e);
 			this.error(response, "节点修改失败");
 		}
-		
 	}
 	
 	/**
@@ -226,20 +239,24 @@ public class IndexController extends BaseController {
 		if(type.equals(Types.setAdmin.toString())){
 			role_id = 3;
 		}
-		
-		// 重新发送激活邮件
-		if(type.equals(Types.resend.toString())){
-			activecodeService.resend(uid);
+
+		try {
+			// 重新发送激活邮件
+			if(type.equals(Types.resend.toString())){
+				activecodeService.resend(uid);
+			}
+			if(null != status){
+				userService.updateStatus(uid, status);
+			}
+
+			if(null != role_id){
+				userService.updateRole(uid, role_id);
+			}
+			this.success(response, "");
+		} catch (Exception e){
+			LOGGER.error("", e);
 		}
-		
-		if(null != status){
-			userService.updateStatus(uid, status);
-		}
-		
-		if(null != role_id){
-			userService.updateRole(uid, role_id);
-		}
-		this.success(response, "");
+
 	}
 	
 	/**

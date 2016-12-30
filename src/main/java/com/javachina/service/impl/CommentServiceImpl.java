@@ -24,7 +24,8 @@ import java.util.Map;
 @Service
 public class CommentServiceImpl implements CommentService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Inject
 	private UserService userService;

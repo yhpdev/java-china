@@ -1,5 +1,6 @@
 package com.javachina.service.impl;
 
+import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.jdbc.core.Take;
@@ -14,7 +15,8 @@ import java.util.List;
 @Service
 public class UserinfoServiceImpl implements UserinfoService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Override
 	public Userinfo getUserinfo(Integer uid) {

@@ -1,6 +1,7 @@
 package com.javachina.config;
 
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.blade.Blade;
 import com.blade.annotation.Order;
 import com.blade.config.BaseConfig;
 import com.blade.config.Configuration;
@@ -20,7 +21,7 @@ import java.util.Properties;
 @Order(sort = 1)
 public class DBConfig implements BaseConfig {
 
-    public static ActiveRecord activeRecord;
+    public ActiveRecord activeRecord;
 
     @Override
     public void config(Configuration configuration) {
@@ -30,6 +31,7 @@ public class DBConfig implements BaseConfig {
             props.load(in);
             DataSource dataSource = DruidDataSourceFactory.createDataSource(props);
             activeRecord = new SampleActiveRecord(dataSource);
+            Blade.$().ioc().addBean(activeRecord);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

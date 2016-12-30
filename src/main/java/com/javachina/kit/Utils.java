@@ -14,7 +14,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.blade.kit.StringKit;
+import com.blade.kit.http.HttpRequest;
+import com.blade.kit.json.JSONKit;
 import com.blade.mvc.http.Request;
+import com.javachina.Constant;
 import com.javachina.ImageTypes;
 import com.javachina.ext.Funcs;
 import com.javachina.ext.markdown.BlockEmitter;
@@ -26,6 +29,24 @@ import com.javachina.ext.markdown.Processor;
  * 工具类
  */
 public class Utils {
+
+	public static FamousDay getTodayFamous(){
+		FamousDay famousDay = new FamousDay();
+		String key = Constant.config.get("famous.key");
+		if(StringKit.isNotBlank(key)){
+			String body = HttpRequest.get("http://api.avatardata.cn/MingRenMingYan/Random?key=" + key).body();
+			if(StringKit.isNotBlank(body)){
+				String famous_saying = JSONKit.parseObject(body).get("result").asJSONObject().getString("famous_saying");
+				String famous_name = JSONKit.parseObject(body).get("result").asJSONObject().getString("famous_name");
+				famousDay.setFamous_saying(famous_saying);
+				famousDay.setFamous_name(famous_name);
+			}
+		} else {
+			famousDay.setFamous_saying("好奇的目光常常可以看到比他所希望看到的东西更多。");
+			famousDay.setFamous_name("莱辛");
+		}
+		return famousDay;
+	}
 
 	/**
 	 * 获取ip地址
@@ -89,9 +110,9 @@ public class Utils {
 	public static boolean isSignup(String user_name){
 		if(StringKit.isNotBlank(user_name)){
 			user_name = user_name.toLowerCase();
-			if(user_name.indexOf("admin") != -1 ||
-					user_name.indexOf("test") != -1 ||
-					user_name.indexOf("support") != -1){
+			if(user_name.contains("admin") ||
+					user_name.contains("test") ||
+					user_name.contains("support")){
 				return false;
 			}
 			return true;
@@ -119,8 +140,10 @@ public class Utils {
 	        outputChannel = new FileOutputStream(dest).getChannel();
 	        outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
 	    } finally {
-	        inputChannel.close();
-	        outputChannel.close();
+			assert inputChannel != null;
+			inputChannel.close();
+			assert outputChannel != null;
+			outputChannel.close();
 	    }
 	}
 	
@@ -177,7 +200,7 @@ public class Utils {
 			out.append("</code></pre>");
 		}
 	}
-	
+
 	public static void escapedAdd(final StringBuilder sb, final String str) {
 		for (int i = 0; i < str.length(); i++) {
 			final char ch = str.charAt(i);
@@ -217,11 +240,12 @@ public class Utils {
 		String content_ = content.replaceAll("@([a-zA-Z_0-9-]+)\\s", "<a href='"+ member +"$1'>@$1</a>&nbsp;");
 		
 		String processed = Processor.process(content_, config);
-		
-		if(processed.indexOf("[mp3:") != -1){
+
+		assert processed != null;
+		if(processed.contains("[mp3:")){
 			processed = processed.replaceAll("\\[mp3:(\\d+)\\]", "<iframe frameborder='no' border='0' marginwidth='0' marginheight='0' width=330 height=86 src='http://music.163.com/outchain/player?type=2&id=$1&auto=0&height=66'></iframe>");
 		}
-		if(processed.indexOf("https://gist.github.com/") != -1){
+		if(processed.contains("https://gist.github.com/")){
 			processed = processed.replaceAll("&lt;script src=\"https://gist.github.com/(\\w+)/(\\w+)\\.js\">&lt;/script>", "<script src=\"https://gist.github.com/$1/$2\\.js\"></script>");
 		}
 		return Funcs.emoji(processed);
@@ -253,5 +277,6 @@ public class Utils {
 		double seconds = create_time - 1459440000;
 		return Double.parseDouble(String.format("%.2f", order + sign * seconds / 45000));
 	}
-	
+
+
 }

@@ -20,7 +20,8 @@ import java.util.Map;
 @Service
 public class FavoriteServiceImpl implements FavoriteService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Inject
 	private TopicService topicService;

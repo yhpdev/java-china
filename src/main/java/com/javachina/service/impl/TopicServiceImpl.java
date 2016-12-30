@@ -10,7 +10,7 @@ import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
 import com.javachina.ImageTypes;
 import com.javachina.Types;
-import com.javachina.config.DBConfig;
+import com.javachina.exception.TipException;
 import com.javachina.kit.Utils;
 import com.javachina.model.*;
 import com.javachina.service.*;
@@ -20,7 +20,8 @@ import java.util.*;
 @Service
 public class TopicServiceImpl implements TopicService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Inject
 	private UserService userService;
@@ -44,16 +45,7 @@ public class TopicServiceImpl implements TopicService {
 	public Topic getTopic(Integer tid) {
 		return activeRecord.byId(Topic.class, tid);
 	}
-	
-	@Override
-	public List<Map<String, Object>> getTopicList(Take queryParam) {
-		if(null != queryParam){
-			List<Topic> topics = activeRecord.list(queryParam);
-			return this.getTopicListMap(topics);
-		}
-		return null;
-	}
-	
+
 	@Override
 	public Paginator<Map<String, Object>> getPageList(Take queryParam) {
 		if(null != queryParam){
@@ -89,57 +81,46 @@ public class TopicServiceImpl implements TopicService {
 	}
 	
 	@Override
-	public Integer save(Integer uid, Integer nid, String title, String content, Integer isTop) {
-		
+	public Integer save(Topic topic) throws Exception {
+		if(null == topic){
+			throw new TipException("帖子信息为空");
+		}
 		try {
 			Integer time = DateKit.getCurrentUnixTime();
-
-			Topic topic = new Topic();
-			topic.setUid(uid);
-			topic.setNid(nid);
-			topic.setTitle(title);
-			topic.setContent(content);
-			topic.setIs_top(isTop);
 			topic.setCreate_time(time);
 			topic.setUpdate_time(time);
 			topic.setStatus(1);
 
 			Integer tid = activeRecord.insert(topic);
-			if(null != tid){
-				
-				topicCountService.save(tid, time);
-				
-				this.updateWeight(tid);
-				
-				// 更新节点下的帖子数
-				nodeService.updateCount(nid, Types.topics.toString(), +1);
-				
-				// 更新总贴数
-				settingsService.updateCount(Types.topic_count.toString(), +1);
-				
-				// 通知@的人
-				if(null != tid){
-					Set<String> atUsers = Utils.getAtUsers(content);
-					if(CollectionKit.isNotEmpty(atUsers)){
-						for(String user_name : atUsers){
-							User user = userService.getUserByLoginName(user_name);
-							if(null != user && !user.getUid().equals(uid)){
-								noticeService.save(Types.topic_at.toString(), user.getUid(), tid);
-							}
-						}
+			topicCountService.save(tid, time);
+			this.updateWeight(tid);
+			// 更新节点下的帖子数
+			nodeService.updateCount(topic.getNid(), Types.topics.toString(), +1);
+			// 更新总贴数
+			settingsService.updateCount(Types.topic_count.toString(), +1);
+
+			// 通知@的人
+			Set<String> atUsers = Utils.getAtUsers(topic.getContent());
+			if(CollectionKit.isNotEmpty(atUsers)){
+				for(String user_name : atUsers){
+					User user = userService.getUserByLoginName(user_name);
+					if(null != user && !user.getUid().equals(topic.getUid())){
+						noticeService.save(Types.topic_at.toString(), user.getUid(), tid);
 					}
 				}
 			}
 			return tid;
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		}
-		return null;
 	}
 	
 	@Override
-	public boolean delete(Integer tid) {
-		if(null != tid){
+	public void delete(Integer tid) throws Exception {
+		try {
+			if(null == tid){
+				throw new TipException("帖子id为空");
+			}
 			Topic topic = new Topic();
 			topic.setTid(tid);
 			topic.setStatus(2);
@@ -149,9 +130,9 @@ public class TopicServiceImpl implements TopicService {
 			nodeService.updateCount(topic.getNid(), Types.topics.toString(), +1);
 			// 更新总贴数
 			settingsService.updateCount(Types.topic_count.toString(), +1);
-			return true;
+		} catch (Exception e){
+			throw e;
 		}
-		return false;
 	}
 
 	@Override
@@ -273,7 +254,6 @@ public class TopicServiceImpl implements TopicService {
 	public Integer update(Integer tid, Integer nid, String title, String content) {
 		if(null != tid && null != nid && StringKit.isNotBlank(title) && StringKit.isNotBlank(content)){
 			try {
-
 				Topic topic = new Topic();
 				topic.setTid(tid);
 				topic.setNid(nid);
@@ -281,7 +261,6 @@ public class TopicServiceImpl implements TopicService {
 				topic.setContent(content);
 				topic.setUpdate_time(DateKit.getCurrentUnixTime());
 				activeRecord.update(topic);
-
 				return tid;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -307,33 +286,29 @@ public class TopicServiceImpl implements TopicService {
 	}
 	
 	@Override
-	public boolean refreshWeight() {
-
-		List<Integer> topics = activeRecord.list("select tid from t_topic where status = 1", Integer.class);
-		if(null != topics) {
-			for(Integer tid : topics){
-				this.updateWeight(tid);
+	public void refreshWeight() throws Exception {
+		try {
+			List<Integer> topics = activeRecord.list("select tid from t_topic where status = 1", Integer.class);
+			if(null != topics) {
+				for(Integer tid : topics){
+					this.updateWeight(tid);
+				}
 			}
+		} catch (Exception e){
+			throw e;
 		}
-		return false;
 	}
 
-	public boolean updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time) {
-		if(null == tid){
-			return false;
-		}
-		
+	public void updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time) {
 		try {
 			double weight = Utils.getWeight(loves, favorites, comment, sinks, create_time);
 			Topic topic = new Topic();
 			topic.setTid(tid);
 			topic.setWeight(weight);
 			activeRecord.update(topic);
-			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		}
-		return false;
 	}
 
 	@Override
@@ -375,22 +350,22 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public boolean updateWeight(Integer tid) {
-		if(null != tid){
+	public void updateWeight(Integer tid) throws Exception {
+		try {
+			if(null == tid){
+				throw new TipException("帖子id为空");
+			}
+
 			TopicCount topicCount = topicCountService.getCount(tid);
 			Integer loves = topicCount.getLoves();
 			Integer favorites = topicCount.getFavorites();
 			Integer comment = topicCount.getComments();
 			Integer sinks = topicCount.getSinks();
 			Integer create_time = topicCount.getCreate_time();
-			return this.updateWeight(tid, loves, favorites, comment, sinks, create_time);
+			this.updateWeight(tid, loves, favorites, comment, sinks, create_time);
+		} catch (Exception e){
+			throw e;
 		}
-		return false;
 	}
 
-	@Override
-	public List<Integer> topicIds() {
-		return activeRecord.list("select tid from t_topic where status = 1", Integer.class);
-	}
-	
 }

@@ -18,14 +18,19 @@ import com.javachina.Types;
 import com.javachina.kit.SessionKit;
 import com.javachina.model.Comment;
 import com.javachina.model.LoginUser;
+import com.javachina.model.NodeTree;
 import com.javachina.model.Topic;
 import com.javachina.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
-@Controller("/")
+@Controller
 public class TopicController extends BaseController {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(TopicController.class);
 
 	@Inject
 	private TopicService topicService;
@@ -229,7 +234,13 @@ public class TopicController extends BaseController {
 		
 		// 发布帖子
 		try {
-			Integer tid = topicService.save(user.getUid(), nid, title, content, 0);
+			Topic topic = new Topic();
+			topic.setUid(user.getUid());
+			topic.setNid(nid);
+			topic.setTitle(title);
+			topic.setContent(content);
+			topic.setIs_top(0);
+			Integer tid = topicService.save(topic);
 			if(null != tid){
 				Constant.SYS_INFO = settingsService.getSystemInfo();
 				Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
@@ -246,7 +257,7 @@ public class TopicController extends BaseController {
 	}
 	
 	private void putData(Request request){
-		List<Map<String, Object>> nodes = nodeService.getNodeList();
+		List<NodeTree> nodes = nodeService.getTree();
 		request.attribute("nodes", nodes);
 	}
 	
@@ -274,7 +285,11 @@ public class TopicController extends BaseController {
 		this.putDetail(request, response, uid, topic);
 		
 		// 刷新浏览数
-		typeCountService.update(Types.views.toString(), tid, 1);
+		try {
+			typeCountService.update(Types.views.toString(), tid, 1);
+		} catch (Exception e){
+			LOGGER.error("", e);
+		}
 		return this.getView("topic_detail");
 	}
 	

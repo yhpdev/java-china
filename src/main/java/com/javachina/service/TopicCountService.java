@@ -6,8 +6,8 @@ public interface TopicCountService {
 	
 	TopicCount getCount(Integer tid);
 	
-	boolean update(String type, Integer tid, int count);
-	
-	boolean save(Integer tid, Integer create_time);
+	void update(String type, Integer tid, int count) throws Exception;
+
+	void save(Integer tid, Integer create_time) throws Exception;
 	
 }

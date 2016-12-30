@@ -1,5 +1,6 @@
 package com.javachina.service.impl;
 
+import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.DateKit;
@@ -11,7 +12,8 @@ import com.javachina.service.OpenIdService;
 @Service
 public class OpenIdServiceImpl implements OpenIdService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Override
 	public Openid getOpenid(String type, Integer open_id) {

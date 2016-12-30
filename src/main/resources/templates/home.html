@@ -13,14 +13,14 @@
 						</ul>
 						<div class="tab-content">
 							<div class="tab-pane active" id="home">
-								#if(null == topicPage.results || topicPage.results.size() == 0)
+								#if(null == topicPage.list || topicPage.list.size() == 0)
 								<div class="alert alert-info alert-dismissable">
 									该节点下暂时还木有帖子呢 <i class="twa twa-lg twa-sparkles"></i>
 								</div>
 								#else
 								<section class="widget bg-white post-comments">
 									
-									#for(topic : topicPage.results)
+									#for(topic : topicPage.list)
 									<div class="media">
 										<a class="pull-left" href="${base_url('/member/') + topic.user_name}"> 
 											<img class="media-object avatar avatar-sm" src="${topic.avatar}" alt="${topic.user_name}">
@@ -68,10 +68,10 @@
 					#for(node : nodes)
                     	#if(node.pid == 0 && node.childs > 0)
                     		<div class="row">
-                    			<div class="col-sm-2" style="line-height: 30px;">${node.node_name}</div>
+                    			<div class="col-sm-2" style="line-height: 30px;">${node.title}</div>
                     			<div class="col-sm-10"><p>
 		                     	#for(nodeitem : node.items)
-		                     	<a href="${base_url('/go/') + nodeitem.node_slug}" class="btn btn-node btn-xs nodes" role="button">${nodeitem.node_name}</a>
+		                     	<a href="${base_url('/go/') + nodeitem.slug}" class="btn btn-node btn-xs nodes" role="button">${nodeitem.title}</a>
 		                     	#end
 		                     	</p></div>
 		                     </div>
@@ -82,7 +82,7 @@
                     
                     #for(node : nodes)
                     	#if(node.pid == 0 && node.childs == 0)
-                     	<a class="btn btn-node btn-xs nodes" role="button">${node.node_name}</a>
+                     	<a class="btn btn-node btn-xs nodes" role="button">${node.title}</a>
                     	#end
                     #end
                     </p></div></div>

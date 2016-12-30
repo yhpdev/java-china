@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * Activecode对象
  */
-@Table(name = "t_activecode", pk = "id")
+@Table(name = "t_activecode")
 public class Activecode implements Serializable {
 
 	private static final long serialVersionUID = 1L;

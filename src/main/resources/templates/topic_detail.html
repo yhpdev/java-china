@@ -76,7 +76,7 @@ var comment_members = [];
                 </div>
                 <div class="panel-body">
                     <ul class="media-list comment-list">
-                    	#for(comment : commentPage.results)
+                    	#for(comment : commentPage.list)
                     	<li class="media" id="Reply${for.index}">
                             <a href="javascript:void(0);" alt="${comment.reply_name}" class="pull-right text-muted at-user">
                             	<i class="fa fa-mail-forward"></i> #${for.index}

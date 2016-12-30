@@ -1,11 +1,11 @@
 package com.javachina.service.impl;
 
+import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.CollectionKit;
 import com.blade.kit.StringKit;
 import com.javachina.Types;
-import com.javachina.config.DBConfig;
 import com.javachina.model.Comment;
 import com.javachina.model.Settings;
 import com.javachina.model.Topic;
@@ -19,23 +19,11 @@ import java.util.Map;
 @Service
 public class SettingsServiceImpl implements SettingsService {
 
-	private ActiveRecord activeRecord = DBConfig.activeRecord;
+	@Inject
+	private ActiveRecord activeRecord;
 
 	@Override
-	public Settings getSettings(String skey) {
-		return activeRecord.byId(Settings.class, skey);
-	}
-	
-	@Override
 	public boolean save( String svalue ) {
-		return false;
-	}
-	
-	@Override
-	public boolean delete(String skey) {
-		if(null != skey){
-			return activeRecord.delete(Settings.class, skey) > 0;
-		}
 		return false;
 	}
 

@@ -49,7 +49,7 @@ public class Funcs {
 	 * @param unixTime
 	 * @return
 	 */
-	public static String fmtdate(Long unixTime) {
+	public static String fmtdate(Integer unixTime) {
 		if(null != unixTime){
 			return DateKit.formatDateByUnixTime(unixTime, "yyyy-MM-dd");
 		}
@@ -62,7 +62,7 @@ public class Funcs {
 	 * @param patten
 	 * @return
 	 */
-	public static String fmtdate(Long unixTime, String patten) {
+	public static String fmtdate(Integer unixTime, String patten) {
 		if(null != unixTime && StringKit.isNotBlank(patten)){
 			return DateKit.formatDateByUnixTime(unixTime, patten);
 		}
@@ -70,7 +70,7 @@ public class Funcs {
 	}
 	
 	public static String today(String patten){
-		return fmtdate((long) DateKit.getCurrentUnixTime(), patten);
+		return fmtdate(DateKit.getCurrentUnixTime(), patten);
 	}
 	
 	/**
@@ -95,13 +95,13 @@ public class Funcs {
 	  * @param ctime 时间
 	  * @return
 	  */
-	public static String timespan(Long ctime) {
+	public static String timespan(Integer ctime) {
 		String r = "";
 		if (ctime == null)
 			return r;
 
 		long nowtimelong = System.currentTimeMillis();
-		long ctimelong = DateKit.getDateByUnixTime(ctime.intValue()).getTime();
+		long ctimelong = DateKit.getDateByUnixTime(ctime).getTime();
 		long result = Math.abs(nowtimelong - ctimelong);
 		
 		// 20秒内
