@@ -486,7 +486,7 @@ public class TopicController extends BaseController {
 			page = 1;
 		}
 		
-		tp.set("status", 1).set("is_essence", 1).desc("create_time", "update_time").page(page, 15);
+		tp.eq("status", 1).eq("is_essence", 1).desc("create_time", "update_time").page(page, 15);
 		Paginator<Map<String, Object>> topicPage = topicService.getPageList(tp);
 		request.attribute("topicPage", topicPage);
 		

@@ -59,7 +59,7 @@ public class NodeServiceImpl implements NodeService {
 
 		// 查找所有父节点
 		Take take = new Take(Node.class);
-		take.and("is_del", 0).and("pid", 0).orderby("topics desc");
+		take.eq("is_del", 0).eq("pid", 0).orderby("topics desc");
 
 		List<NodeTree> nodeTrees = new ArrayList<>();
 

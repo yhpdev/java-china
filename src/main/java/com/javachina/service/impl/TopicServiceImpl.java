@@ -47,9 +47,9 @@ public class TopicServiceImpl implements TopicService {
 	}
 
 	@Override
-	public Paginator<Map<String, Object>> getPageList(Take queryParam) {
-		if(null != queryParam){
-			Paginator<Topic> topicPage = activeRecord.page(queryParam);
+	public Paginator<Map<String, Object>> getPageList(Take take) {
+		if(null != take){
+			Paginator<Topic> topicPage = activeRecord.page(take);
 			return this.getTopicPageMap(topicPage);
 		}
 		return null;

@@ -8,7 +8,7 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.*;
 import com.javachina.ImageTypes;
 import com.javachina.Types;
-import com.javachina.config.DBConfig;
+import com.javachina.kit.MailKit;
 import com.javachina.kit.QiniuKit;
 import com.javachina.kit.Utils;
 import com.javachina.model.LoginUser;
@@ -17,7 +17,6 @@ import com.javachina.model.Userinfo;
 import com.javachina.service.*;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,11 +91,18 @@ public class UserServiceImpl implements UserService {
 			user.setStatus(0);
 			user.setCreate_time(time);
 			user.setUpdate_time(time);
-			Integer uid = activeRecord.insert(user);
-			user.setUid(uid);
+			Long uid = activeRecord.insert(user);
+			if(null != uid){
+				user.setUid(uid.intValue());
 
-			// 发送邮件通知
-			activecodeService.save(user, Types.signup.toString());
+				userinfoService.save(user.getUid());
+
+				// 发送邮件通知
+				String code = activecodeService.save(user, Types.signup.toString());
+
+				//  发送注册邮件
+				MailKit.sendSignup(user.getLogin_name(), user.getEmail(), code);
+			}
 			return user;
 		} catch (Exception e) {
 			throw e;
@@ -127,11 +133,10 @@ public class UserServiceImpl implements UserService {
 		String pwd = EncrypKit.md5(loginName + passWord);
 
 		Take take = new Take(User.class);
-		take.and("pass_word", pwd);
-		take.in("status", Arrays.asList(0, 1));
-
-		take.and("login_name", loginName);
-		take.or("email", loginName);
+		take.eq("pass_word", pwd)
+			.in("status", 0, 1)
+			.eq("login_name", loginName)
+			.or("email", "=", loginName);
 
 		return activeRecord.one(take);
 	}
@@ -265,10 +270,9 @@ public class UserServiceImpl implements UserService {
 	public boolean hasUser(String login_name) {
 		if(StringKit.isNotBlank(login_name)){
 			Take take = new Take(User.class);
-			take.in("status", Arrays.asList(0, 1));
-
-			take.and("login_name", login_name);
-			take.or("email", login_name);
+			take.in("status", 0, 1)
+					.eq("login_name", login_name)
+					.or("email", "=", login_name);
 
 			return activeRecord.count(take) > 0;
 		}
@@ -279,9 +283,9 @@ public class UserServiceImpl implements UserService {
 	public User getUserByLoginName(String user_name) {
 		if(StringKit.isNotBlank(user_name)){
 			Take take = new Take(User.class);
-			take.in("status", Arrays.asList(0, 1));
-			take.and("login_name", user_name);
-			take.or("email", user_name);
+			take.in("status", 0, 1)
+				.eq("login_name", user_name)
+				.or("email", "=", user_name);
 
 			return activeRecord.one(take);
 		}

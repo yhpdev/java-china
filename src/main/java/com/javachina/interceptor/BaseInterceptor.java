@@ -27,7 +27,7 @@ public class BaseInterceptor implements Interceptor {
 		
 		LOGGE.info("UA >>> " + request.userAgent());
 		LOGGE.info("用户访问地址 >>> " + request.raw().getRequestURI() + ", 来路地址  >>> " + Utils.getIpAddr(request));
-		
+
 		LoginUser user = SessionKit.getLoginUser();
 		
 		if(null == user){
@@ -44,24 +44,24 @@ public class BaseInterceptor implements Interceptor {
 		}
 		
 		String uri = request.uri();
-		if(uri.indexOf("/admin/") != -1){
+		if(uri.contains("/admin/")){
 			if(null == user || user.getRole_id() != 1){
 				response.go("/signin");
 				return false;
 			}
 		}
 		
-		if(request.method().equals("POST")){
+		/*if(request.method().equals("POST")){
 			String referer = request.header("Referer");
 			if(StringKit.isBlank(referer) || !referer.startsWith(Constant.SITE_URL)){
 				response.go("/");
 				return false;
 			}
-			/*if(request.isAjax() && !CSRFTokenManager.verify(request, response)){
+			if(request.isAjax() && !CSRFTokenManager.verify(request, response)){
 				response.text("CSRF ERROR");
 	            return false;
-	        }*/
-		}
+	        }
+		}*/
 
 //		CSRFTokenManager.createNewToken(request, response);
 		

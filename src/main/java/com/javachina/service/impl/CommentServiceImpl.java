@@ -129,7 +129,7 @@ public class CommentServiceImpl implements CommentService {
 	@Override
 	public Comment getTopicLastComment(Integer tid) {
 		Take take = new Take(Comment.class);
-		take.and("tid", tid).desc("cid");
+		take.eq("tid", tid).desc("cid");
 		return activeRecord.one(take);
 	}
 

@@ -71,7 +71,11 @@ public class UserController extends BaseController {
 	 */
 	@Route(value = "/captcha", method = HttpMethod.GET)
 	public void show_captcha(Request request, Response response){
-		patchca.render(request, response);
+		try {
+			patchca.render(request, response);
+		} catch (Exception e){
+
+		}
 	}
 	
 	/**
@@ -249,7 +253,7 @@ public class UserController extends BaseController {
 		
 		Take queryParam = new Take(User.class);
 		queryParam.eq("login_name", login_name);
-		queryParam.in("status", Arrays.asList(0, 1));
+		queryParam.in("status", 0, 1);
 		User user = userService.getUser(queryParam);
 		if(null != user){
 			request.attribute(this.ERROR, "该用户名已经被占用，请更换用户名");
@@ -273,10 +277,11 @@ public class UserController extends BaseController {
 			} else {
 				request.attribute(this.ERROR, "注册发生异常");
 			}
-			return this.getView("signup");
 		} catch (Exception e){
-			return null;
+			LOGGER.error("注册失败", e);
+			request.attribute(this.ERROR, "注册失败");
 		}
+		return this.getView("signup");
 	}
 	
 	/**

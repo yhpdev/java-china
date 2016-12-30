@@ -57,17 +57,8 @@ public class ActivecodeServiceImpl implements ActivecodeService {
 		activecode.setType(type);
 		activecode.setExpires_time(expires_time);
 		activecode.setCreate_time(time);
-
 		try {
 			activeRecord.insert(activecode);
-
-			userinfoService.save(user.getUid());
-
-			if(type.equals("signup")){
-				//  发送注册邮件
-				MailKit.sendSignup(user.getLogin_name(), user.getEmail(), code);
-			}
-
 			if(type.equals("forgot")){
 				MailKit.sendForgot(user.getLogin_name(), user.getEmail(), code);
 			}
