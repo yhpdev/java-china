@@ -27,6 +27,7 @@ public class TemplateConfig implements BaseConfig {
         resolver.registerFunctions(Funcs.class);
         resolver.registerMethods(Methods.class);
         Constant.VIEW_CONTEXT = context;
+        Constant.VIEW_CONTEXT.set("cdn", Constant.CDN_URL);
         ViewSettings.$().templateEngine(templateEngine);
     }
 }
