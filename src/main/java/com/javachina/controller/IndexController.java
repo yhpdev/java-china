@@ -20,7 +20,6 @@ import com.blade.mvc.view.ModelAndView;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.kit.FamousDay;
-import com.javachina.kit.MailKit;
 import com.javachina.kit.SessionKit;
 import com.javachina.kit.Utils;
 import com.javachina.model.LoginUser;
@@ -282,13 +281,5 @@ public class IndexController extends BaseController {
 	public ModelAndView robots(Request request, Response response){
 		return this.getView("robots");
 	}
-	
-	/**
-	 * sitemap页面
-	 */
-	@Route(value = "/mailtest", method = HttpMethod.GET)
-	public void sitemap(Request request, Response response){
-		MailKit.send("测试", "renqi@laicaijie.com", "这啊实打实大撒的");
-	}
-	
+
 }
