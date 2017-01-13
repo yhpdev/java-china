@@ -111,7 +111,8 @@ public class CommentServiceImpl implements CommentService {
 			comment.setDevice(ua);
 			comment.setCreate_time(DateKit.getCurrentUnixTime());
 
-			return activeRecord.insert(comment);
+			Long cid = activeRecord.insert(comment);
+			return cid.intValue();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

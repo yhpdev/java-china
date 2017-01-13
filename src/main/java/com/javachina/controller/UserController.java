@@ -188,6 +188,7 @@ public class UserController extends BaseController {
 		}
 		
 		Integer page = request.queryAsInt("p");
+		page = null == page ? 1 : page;
 		
 		Paginator<Map<String, Object>> noticePage = noticeService.getNoticePage(user.getUid(), page, 10);
 		request.attribute("noticePage", noticePage);
@@ -496,6 +497,7 @@ public class UserController extends BaseController {
 		}
 		
 		Integer page = request.queryAsInt("p");
+		page = null == page ? 1 : page;
 		
 		Paginator<Map<String, Object>> favoritesPage = favoriteService.getMyTopics(user.getUid(), page, 10);
 		request.attribute("favoritesPage", favoritesPage);
@@ -534,7 +536,8 @@ public class UserController extends BaseController {
 		}
 		
 		Integer page = request.queryAsInt("p");
-		
+		page = null == page ? 1 : page;
+
 		Paginator<Map<String, Object>> followingPage = favoriteService.getFollowing(user.getUid(), page, 10);
 		request.attribute("followingPage", followingPage);
 		
