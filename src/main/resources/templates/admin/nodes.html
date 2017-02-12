@@ -26,7 +26,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						#for(node : nodePage.results)
+						#for(node : nodePage.list)
 						<tr>
 							<td>${node.node_name}</td>
 							<td>${node.parent_name}</td>
@@ -41,7 +41,7 @@
 					</tbody>
 				</table>
 			</div>
-			#if(nodePage.totalPage > 1)
+			#if(nodePage.pages > 1)
 			<div class="datatable-bottom pt10">
 				<div class="pull-left">
 					<div class="dataTables_info" id="DataTables_Table_0_info"
@@ -51,9 +51,9 @@
 					<div class="dataTables_paginate paging_bootstrap"
 						id="DataTables_Table_0_paginate">
 						<ul class="pagination no-margin">
-							<li class="prev #if(nodePage.page==1)#end"><a href="${base_url('/admin/nodes?p=') + nodePage.prev_page }" title="Previous">←</a></li>
-							<li class="active"><a href="#">${nodePage.page}</a></li>
-							<li class="next"><a href="${base_url('/admin/nodes?p=') + nodePage.next_page }" title="Next">→</a></li>
+							<li class="prev #if(nodePage.pageNum==1) disabled #end"><a href="${base_url('/admin/nodes?p=') + nodePage.prevPage }" title="Previous">←</a></li>
+							<li class="active"><a href="#">${nodePage.pageNum}</a></li>
+							<li class="next"><a href="${base_url('/admin/nodes?p=') + nodePage.nextPage }" title="Next">→</a></li>
 						</ul>
 					</div>
 				</div>

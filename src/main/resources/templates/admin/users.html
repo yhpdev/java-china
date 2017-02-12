@@ -25,7 +25,7 @@
 						</tr>
 					</thead>
 					<tbody class="user-table">
-						#for(user : userPage.results)
+						#for(user : userPage.list)
 						<tr>
 							<td>
 								<a href="${base_url('/member/') + user.login_name}" target="_blank">${user.login_name}</a>
@@ -42,18 +42,29 @@
 								#end
 							</td>
 							<td>
+								#if(user.role_id != 1)
+
 								#if(user.status == 0)
-									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm activeAccount">激活账户</a>
-									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm resendMail">重新发送邮件激活</a>
-								#elseif(user.status == 1)
+								<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm activeAccount">激活账户</a>
+								<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm resendMail">重新发送邮件激活</a>
+								#end
+
+								#if(user.status == 1)
+									#if(user.role_id == 3 && login_user.role_id == 1)
 									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm disable">拉黑</a>
-									#if(user.role_id == 3)
-										<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm removeAdmin">取消管理员</a>
-									#else
-										<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm setAdmin">设置管理员</a>
+									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm removeAdmin">取消管理员</a>
+									#elseif(user.role_id == 5 && login_user.role_id == 1)
+									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm disable">拉黑</a>
+									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm setAdmin">设置管理员</a>
+									#elseif(login_user.role_id == 3 && user.role_id == 5)
+									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm disable">拉黑</a>
 									#end
-								#elseif(user.status == 2)
-									<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm recoveryAccount">恢复账户</a>
+								#end
+
+								#if(user.status == 2)
+								<a href="javascript:;" uid="${user.uid}" class="btn btn-danger btn-outline btn-sm recoveryAccount">恢复账户</a>
+								#end
+
 								#end
 							</td>
 						</tr>
@@ -63,13 +74,13 @@
 			</div>
 			<div class="datatable-bottom pt10">
 				<div class="pull-right">
-					#if(userPage.totalPage > 1)
+					#if(userPage.pages > 1)
 					<ul class="pager">
-						#if(userPage.page > 1)
-						<li class="pull-left"><a href="${base_url('/admin/users?p=') + userPage.prev_page}">上一页</a></li>
+						#if(userPage.pageNum > 1)
+						<li class="pull-left"><a href="${base_url('/admin/users?p=') + userPage.prevPage}">上一页</a></li>
 						#end
-						#if(userPage.totalPage > 1 && userPage.page != userPage.totalPage)
-						<li class="pull-right"><a href="${base_url('/admin/users?p=') + userPage.next_page}">下一页</a></li>
+						#if(userPage.pages > 1 && userPage.pageNum != userPage.pages)
+						<li class="pull-right"><a href="${base_url('/admin/users?p=') + userPage.nextPage}">下一页</a></li>
 						#end
 					</ul>
 					#end

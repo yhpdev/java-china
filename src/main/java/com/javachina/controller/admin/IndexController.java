@@ -15,6 +15,7 @@ import com.blade.mvc.view.ModelAndView;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.controller.BaseController;
+import com.javachina.kit.MapCache;
 import com.javachina.model.Node;
 import com.javachina.model.User;
 import com.javachina.service.*;
@@ -44,7 +45,9 @@ public class IndexController extends BaseController {
 	
 	@Inject
 	private ActivecodeService activecodeService;
-	
+
+	private MapCache mapCache = MapCache.single();
+
 	/**
 	 * 首页
 	 */
@@ -279,6 +282,7 @@ public class IndexController extends BaseController {
 		}
 		
 		if(type.equals("clean_cache")){
+			mapCache.clean();
 			request.attribute(this.INFO, "执行成功");
 			return this.getAdminView("tools");
 		}

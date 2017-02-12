@@ -94,7 +94,7 @@ public class NodeServiceImpl implements NodeService {
 	private Paginator<Map<String, Object>> getNodePageMap(Paginator<Node> nodePage){
 		
 		long totalCount = nodePage.getTotal();
-		int page = nodePage.getPages();
+		int page = nodePage.getPageNum();
 		int pageSize = nodePage.getLimit();
 		Paginator<Map<String, Object>> result = new Paginator<Map<String,Object>>(totalCount, page, pageSize);
 		
