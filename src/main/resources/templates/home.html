@@ -22,8 +22,8 @@
 									
 									#for(topic : topicPage.list)
 									<div class="media">
-										<a class="pull-left" href="${base_url('/member/') + topic.user_name}"> 
-											<img class="media-object avatar avatar-sm" src="${topic.avatar}" alt="${topic.user_name}">
+										<a class="pull-left" href="${base_url('/member/') + topic.login_name}">
+											<img class="media-object avatar avatar-sm" src="${cdn_url}/${topic.avatar}" alt="${topic.login_name}">
 										</a>
 										<div class="comment">
 											<div class="comment-author h6 no-margin">
@@ -37,13 +37,9 @@
 												#end
 											</div>
 											<div class="comment-bt">
-												<span class="label label-default"><a href="${base_url('/go/') + topic.node_slug}">${topic.node_name}</a></span> &nbsp;•&nbsp; 
-												<strong><a href="${base_url('/member/') + topic.user_name}">${topic.user_name}</a></strong>
+												<span class="label label-default"><a href="${base_url('/go/') + topic.node_slug}">${topic.node_title}</a></span> &nbsp;•&nbsp;
+												<strong><a href="${base_url('/member/') + topic.login_name}">${topic.login_name}</a></strong>
 												 &nbsp;•&nbsp; <span>${timespan(topic.update_time)}</span>
-												 #if(topic.comments > 0)
-												 &nbsp;•&nbsp; 最后回复来自
-												 <strong><a href="${base_url('/member/') + topic.reply_name}">${topic.reply_name}</a></strong>
-												 #end
 											</div>
 										</div>
 									</div>

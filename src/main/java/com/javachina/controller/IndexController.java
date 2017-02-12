@@ -19,7 +19,9 @@ import com.blade.mvc.multipart.FileItem;
 import com.blade.mvc.view.ModelAndView;
 import com.javachina.Constant;
 import com.javachina.Types;
+import com.javachina.dto.HomeTopic;
 import com.javachina.kit.FamousDay;
+import com.javachina.kit.MapCache;
 import com.javachina.kit.SessionKit;
 import com.javachina.kit.Utils;
 import com.javachina.model.LoginUser;
@@ -52,13 +54,15 @@ public class IndexController extends BaseController {
 	
 	@Inject
 	private FavoriteService favoriteService;
-	
+
+	private MapCache mapCache = MapCache.single();
+
 	/**
 	 * 首页热门
 	 */
 	@Route(value = "/", method = HttpMethod.GET)
 	public ModelAndView show_home(Request request, Response response){
-		
+
 		this.putData(request);
 		
 		// 帖子
@@ -77,18 +81,24 @@ public class IndexController extends BaseController {
 			}
 		}
 		
-		Paginator<Map<String, Object>> topicPage = topicService.getHotTopic(nid, page, 20);
+		Paginator<HomeTopic> topicPage = topicService.getHomeTopics(nid, page, 20);
 		request.attribute("topicPage", topicPage);
 		
 		// 最热帖子
-		List<Map<String, Object>> hot_topics = topicService.getHotTopic(null, 1, 10).getList();
-		request.attribute("hot_topics", hot_topics);
-		
+		List<HomeTopic> hotTopics = mapCache.get(Constant.C_HOT_TOPICS);
+		if(null == hotTopics){
+			hotTopics = topicService.getHotTopics(1, 10);
+			mapCache.set(Constant.C_HOT_TOPICS, hotTopics, 60 * 10);
+		}
+		request.attribute("hot_topics", hotTopics);
+
 		// 最热门的8个节点
-		Take np = new Take(Node.class);
-		np.eq("is_del", 0).notEq("pid", 0).page(1, 8, "topics desc");
-		List<Node> hot_nodes = nodeService.getNodeList(np);
-		request.attribute("hot_nodes", hot_nodes);
+		List<Node> hotNodes = mapCache.get(Constant.C_HOT_NODES);
+		if(null == hotNodes){
+			hotNodes = nodeService.getHotNodes(1, 8);
+			mapCache.set(Constant.C_HOT_NODES, hotNodes, 60 * 60 * 12);
+		}
+		request.attribute("hot_nodes", hotNodes);
 		
 		return this.getView("home");
 	}
@@ -97,7 +107,7 @@ public class IndexController extends BaseController {
 	 * 最新
 	 */
 	@Route(value = "/recent", method = HttpMethod.GET)
-	public ModelAndView show_recent(Request request, Response response){
+	public ModelAndView show_recent(Request request){
 		
 		this.putData(request);
 		
@@ -117,18 +127,24 @@ public class IndexController extends BaseController {
 			}
 		}
 		
-		Paginator<Map<String, Object>> topicPage = topicService.getRecentTopic(nid, page, 15);
+		Paginator<HomeTopic> topicPage = topicService.getRecentTopics(nid, page, 15);
 		request.attribute("topicPage", topicPage);
-				
+
 		// 最热帖子
-		List<Map<String, Object>> hot_topics = topicService.getHotTopic(null, 1, 10).getList();
-		request.attribute("hot_topics", hot_topics);
-		
-		// 最热门的10个节点
-		Take np = new Take(Node.class);
-		np.eq("is_del", 0).notEq("pid", 0).page(1, 8, "topics desc");
-		List<Node> hot_nodes = nodeService.getNodeList(np);
-		request.attribute("hot_nodes", hot_nodes);
+		List<HomeTopic> hotTopics = mapCache.get(Constant.C_HOT_TOPICS);
+		if(null == hotTopics){
+			hotTopics = topicService.getHotTopics(1, 10);
+			mapCache.set(Constant.C_HOT_TOPICS, hotTopics, 60 * 10);
+		}
+		request.attribute("hot_topics", hotTopics);
+
+		// 最热门的8个节点
+		List<Node> hotNodes = mapCache.get(Constant.C_HOT_NODES);
+		if(null == hotNodes){
+			hotNodes = nodeService.getHotNodes(1, 8);
+			mapCache.set(Constant.C_HOT_NODES, hotNodes, 60 * 60 * 12);
+		}
+		request.attribute("hot_nodes", hotNodes);
 		
 		return this.getView("recent");
 	}
@@ -140,15 +156,23 @@ public class IndexController extends BaseController {
      */
 	private void putData(Request request){
 
-		// 读取节点列表
-		List<NodeTree> nodes = nodeService.getTree();
+		List<NodeTree> nodes = mapCache.get(Constant.C_HOME_NODE_KEY);
+		if(null == nodes){
+			// 读取节点列表
+			nodes = nodeService.getTree();
+			mapCache.set(Constant.C_HOME_NODE_KEY, nodes, 60 * 60 * 12);
+		}
+
 		request.attribute("nodes", nodes);
 
-		if(null == Constant.VIEW_CONTEXT.getValue("famousDay")){
+		FamousDay famousDay = mapCache.get(Constant.C_HOME_FAMOUS_KEY);
+		if(null == famousDay){
 			// 每日格言
-			FamousDay famousDay = Utils.getTodayFamous();
-			Constant.VIEW_CONTEXT.set("famousDay", famousDay);
+			famousDay = Utils.getTodayFamous();
+			mapCache.set(Constant.C_HOME_FAMOUS_KEY, famousDay, 60 * 60 * 12);
 		}
+
+		request.attribute("famousDay", famousDay);
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package com.javachina.service;
 
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
+import com.javachina.dto.HomeTopic;
 import com.javachina.model.Topic;
 
 import java.util.List;
@@ -40,5 +41,12 @@ public interface TopicService {
 	Paginator<Map<String, Object>> getRecentTopic(Integer nid, Integer page, Integer count);
 
 	void essence(Integer tid, Integer count);
-	
+
+	/* 新的 ↓↓↓ */
+
+	Paginator<HomeTopic> getHomeTopics(Integer nid, int page, int limit);
+
+	Paginator<HomeTopic> getRecentTopics(Integer nid, int page, int limit);
+
+	List<HomeTopic> getHotTopics(int page, int limie);
 }

@@ -29,4 +29,6 @@ public interface NodeService {
 	void updateCount(Integer nid, String type, int count) throws Exception;
 
 	void update(Node node) throws Exception;
+
+    List<Node> getHotNodes(int page, int limit);
 }

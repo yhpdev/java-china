@@ -4,7 +4,7 @@
 	<groupId>com.junicorn</groupId>
 	<artifactId>java-china</artifactId>
 	<packaging>jar</packaging>
-	<version>0.2.0</version>
+	<version>0.3.0</version>
 	<name>java-china</name>
 	<url>http://java-china.org</url>
 
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>com.bladejava</groupId>
 			<artifactId>blade-core</artifactId>
-			<version>1.7.0-alpha</version>
+			<version>1.7.0</version>
 		</dependency>
 		<!-- 七牛CDN -->
 		<dependency>
@@ -42,7 +42,7 @@
 		<dependency>
 			<groupId>com.bladejava</groupId>
 			<artifactId>blade-template-jetbrick</artifactId>
-			<version>0.0.7</version>
+			<version>0.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba</groupId>
@@ -50,11 +50,11 @@
 			<version>${druid.version}</version>
 		</dependency>
 		<!--web容器-->
-		<dependency>
-			<groupId>com.bladejava</groupId>
-			<artifactId>blade-embed-jetty</artifactId>
-			<version>0.0.7</version>
-		</dependency>
+        <dependency>
+            <groupId>com.bladejava</groupId>
+            <artifactId>blade-embed-jetty</artifactId>
+            <version>0.0.9</version>
+        </dependency>
 		<!-- 验证码 -->
 		<dependency>
 			<groupId>com.bladejava</groupId>
@@ -71,6 +71,12 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-email</artifactId>
 			<version>1.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 
 	</dependencies>

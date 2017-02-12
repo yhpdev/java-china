@@ -6,7 +6,7 @@ import java.util.Map;
 
 public interface NoticeService {
 	
-	boolean save(String type, Integer to_uid, Integer event_id);
+	boolean save(String type, Integer uid, Integer to_uid, Integer event_id);
 	
 	boolean read(Integer to_uid);
 

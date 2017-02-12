@@ -15,6 +15,7 @@ import com.blade.mvc.view.ModelAndView;
 import com.javachina.Actions;
 import com.javachina.Constant;
 import com.javachina.Types;
+import com.javachina.kit.MapCache;
 import com.javachina.kit.SessionKit;
 import com.javachina.model.Comment;
 import com.javachina.model.LoginUser;
@@ -58,7 +59,9 @@ public class TopicController extends BaseController {
 	
 	@Inject
 	private TopicCountService typeCountService;
-	
+
+	private MapCache mapCache = MapCache.single();
+
 	/**
 	 * 发布帖子页面
 	 */
@@ -282,18 +285,27 @@ public class TopicController extends BaseController {
 			return null;
 		}
 		
-		this.putDetail(request, response, uid, topic);
-		
+		this.putDetail(request, uid, topic);
+
 		// 刷新浏览数
 		try {
-			typeCountService.update(Types.views.toString(), tid, 1);
+			Integer hits = mapCache.get(Constant.C_TOPIC_VIEWS + ":" + tid);
+			if(null == hits){
+				hits = 0;
+			}
+			hits += 1;
+			mapCache.set(Constant.C_TOPIC_VIEWS + ":" + tid, hits);
+			if(hits >= 10){
+				typeCountService.update(Types.views.toString(), tid, 10);
+				mapCache.set(Constant.C_TOPIC_VIEWS + ":" + tid, 0);
+			}
 		} catch (Exception e){
 			LOGGER.error("", e);
 		}
 		return this.getView("topic_detail");
 	}
 	
-	private void putDetail(Request request, Response response, Integer uid, Topic topic){
+	private void putDetail(Request request, Integer uid, Topic topic){
 		
 		Integer page = request.queryAsInt("p");
 		if(null == page || page < 1){
@@ -311,7 +323,7 @@ public class TopicController extends BaseController {
 		// 是否点赞
 		boolean is_love = favoriteService.isFavorite(Types.love.toString(), uid, topic.getTid());
 		request.attribute("is_love", is_love);
-		
+
 		Take cp = new Take(Comment.class);
 		cp.and("tid", topic.getTid()).asc("cid").page(page, 20);
 		Paginator<Map<String, Object>> commentPage = commentService.getPageListMap(cp);

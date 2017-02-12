@@ -230,7 +230,7 @@ $('.topic-footer .deltopic').on('click', function(){
 $('.topic-footer .share-weibo').on('click', function(){
 	var title = $('.topic-detail-heading .panel-title').text();
 	var href = window.location.href;
-	var share_url = 'http://service.weibo.com/share/share.php?url=' + href + '&title=' + encodeURI(title);
+	var share_url = 'http://service.weibo.com/share/share.php?url=' + href + '&title=' + encodeURI(title) + ' | Java中国';
 	openWindow(share_url, '', 550, 422);
 });
 
@@ -351,7 +351,10 @@ $("#comment-form .ladda-button").on('click', function(e){
 		$.post(BASE + '/comment/add', formData, function(response){
 			setTimeout(function () {
 	            l.stop();
+
 	        }, 600);
+			$('#comment-form')[0].reset();
+			$('#comment-form button').removeAttr('disabled');
 			if(response){
 				if(response.status == 200){
 					window.location.reload();

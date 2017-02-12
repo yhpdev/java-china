@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.FileChannel;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -23,6 +25,12 @@ import com.javachina.ext.Funcs;
 import com.javachina.ext.markdown.BlockEmitter;
 import com.javachina.ext.markdown.Configuration;
 import com.javachina.ext.markdown.Processor;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -278,5 +286,123 @@ public class Utils {
 		return Double.parseDouble(String.format("%.2f", order + sign * seconds / 45000));
 	}
 
+	public static String getIPAddr(HttpServletRequest request){
+		try {
+			String ipAddress = null;
+			//ipAddress = this.getRequest().getRemoteAddr();
+			ipAddress = request.getHeader("x-forwarded-for");
+			if(ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+				ipAddress = request.getHeader("Proxy-Client-IP");
+			}
+			if(ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+				ipAddress = request.getHeader("WL-Proxy-Client-IP");
+			}
+			if(ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+				ipAddress = request.getHeader("X-Real-IP");
+			}
+			if(ipAddress == null || ipAddress.length() == 0 || "unknown".equalsIgnoreCase(ipAddress)) {
+				ipAddress = request.getRemoteAddr();
+				if(ipAddress.equals("127.0.0.1")){
+					//根据网卡取本机配置的IP
+					InetAddress inet=null;
+					try {
+						inet = InetAddress.getLocalHost();
+					} catch (UnknownHostException e) {
+
+					}
+					ipAddress= inet.getHostAddress();
+				}
+
+			}
+			//对于通过多个代理的情况，第一个IP为客户端真实IP,多个IP按照','分割
+			if(ipAddress!=null && ipAddress.length()>15){ //"***.***.***.***".length() = 15
+				if(ipAddress.indexOf(",")>0){
+					ipAddress = ipAddress.substring(0,ipAddress.indexOf(","));
+				}
+			}
+			return ipAddress;
+		} catch (Exception e) {
+			return "";
+		}
+	}
+
+	/**
+	 * 在字符串左侧填充一定数量的特殊字符
+	 *
+	 * @param o
+	 *            可被 toString 的对象
+	 * @param width
+	 *            字符数量
+	 * @param c
+	 *            字符
+	 * @return 新字符串
+	 */
+	public static String alignRight(Object o, int width, char c) {
+		if (null == o)
+			return null;
+		String s = o.toString();
+		int len = s.length();
+		if (len >= width)
+			return s;
+		return new StringBuilder().append(dup(c, width - len)).append(s).toString();
+	}
+
+	/**
+	 * 在字符串右侧填充一定数量的特殊字符
+	 *
+	 * @param o
+	 *            可被 toString 的对象
+	 * @param width
+	 *            字符数量
+	 * @param c
+	 *            字符
+	 * @return 新字符串
+	 */
+	public static String alignLeft(Object o, int width, char c) {
+		if (null == o)
+			return null;
+		String s = o.toString();
+		int length = s.length();
+		if (length >= width)
+			return s;
+		return new StringBuilder().append(s).append(dup(c, width - length)).toString();
+	}
+
+	/**
+	 * 复制字符
+	 *
+	 * @param c
+	 *            字符
+	 * @param num
+	 *            数量
+	 * @return 新字符串
+	 */
+	public static String dup(char c, int num) {
+		if (c == 0 || num < 1)
+			return "";
+		StringBuilder sb = new StringBuilder(num);
+		for (int i = 0; i < num; i++)
+			sb.append(c);
+		return sb.toString();
+	}
+
+
+
+	public static String encrypt(String plainText, String encryptionKey) throws Exception {
+		Cipher cipher = Cipher.getInstance("AES");
+		SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
+		cipher.init(Cipher.ENCRYPT_MODE, key);
+		byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+		return new BASE64Encoder().encode(encryptedBytes);
+	}
+
+	public static String decrypt(String cipherText, String encryptionKey) throws Exception {
+		Cipher cipher = Cipher.getInstance("AES");
+		SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
+		cipher.init(Cipher.DECRYPT_MODE, key);
+		byte[] cipherTextBytes = new BASE64Decoder().decodeBuffer(cipherText);
+		byte[] decValue = cipher.doFinal(cipherTextBytes);
+		return new String(decValue);
+	}
 
 }

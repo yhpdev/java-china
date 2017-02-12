@@ -226,5 +226,24 @@ public class NodeServiceImpl implements NodeService {
 			throw e;
 		}
 	}
-	
+
+	@Override
+	public List<Node> getHotNodes(int page, int limit) {
+		if(page <= 0){
+			page = 1;
+		}
+
+		if(limit <= 0 || limit > 50){
+			limit = 10;
+		}
+
+		Take np = new Take(Node.class);
+		np.eq("is_del", 0).notEq("pid", 0).page(page, limit, "topics desc");
+
+		Paginator<Node> nodePaginator = activeRecord.page(np);
+		if(null != nodePaginator){
+			return nodePaginator.getList();
+		}
+		return null;
+	}
 }

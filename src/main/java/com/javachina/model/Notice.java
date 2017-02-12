@@ -13,7 +13,9 @@ public class Notice implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private Integer id;
-	
+
+	private Integer uid;
+
 	private Integer to_uid;
 	
 	private Integer event_id;
@@ -74,4 +76,11 @@ public class Notice implements Serializable {
 		this.create_time = create_time;
 	}
 
+	public Integer getUid() {
+		return uid;
+	}
+
+	public void setUid(Integer uid) {
+		this.uid = uid;
+	}
 }

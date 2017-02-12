@@ -40,11 +40,12 @@ public class NoticeServiceImpl implements NoticeService {
 	private CommentService commentService;
 	
 	@Override
-	public boolean save(String type, Integer to_uid, Integer event_id) {
-		if(StringKit.isNotBlank(type) && null != to_uid && null != event_id){
+	public boolean save(String type, Integer uid, Integer to_uid, Integer event_id) {
+		if(StringKit.isNotBlank(type) && null != uid && null != to_uid && null != event_id){
 
 			Notice notice = new Notice();
 			notice.setType(type);
+			notice.setUid(uid);
 			notice.setTo_uid(to_uid);
 			notice.setEvent_id(event_id);
 			notice.setCreate_time(DateKit.getCurrentUnixTime());

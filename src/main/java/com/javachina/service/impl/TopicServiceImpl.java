@@ -2,18 +2,22 @@ package com.javachina.service.impl;
 
 import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
-import com.blade.jdbc.ActiveRecord;
+import com.blade.jdbc.ar.SampleActiveRecord;
 import com.blade.jdbc.core.Take;
+import com.blade.jdbc.model.PageRow;
 import com.blade.jdbc.model.Paginator;
 import com.blade.kit.CollectionKit;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
 import com.javachina.ImageTypes;
 import com.javachina.Types;
+import com.javachina.dto.HomeTopic;
 import com.javachina.exception.TipException;
+import com.javachina.ext.PageHelper;
 import com.javachina.kit.Utils;
 import com.javachina.model.*;
 import com.javachina.service.*;
+import org.sql2o.Sql2o;
 
 import java.util.*;
 
@@ -21,7 +25,7 @@ import java.util.*;
 public class TopicServiceImpl implements TopicService {
 
 	@Inject
-	private ActiveRecord activeRecord;
+	private SampleActiveRecord activeRecord;
 
 	@Inject
 	private UserService userService;
@@ -92,6 +96,7 @@ public class TopicServiceImpl implements TopicService {
 			topic.setStatus(1);
 
 			Integer tid = activeRecord.insert(topic);
+			Integer uid = topic.getUid();
 			topicCountService.save(tid, time);
 			this.updateWeight(tid);
 			// 更新节点下的帖子数
@@ -105,7 +110,7 @@ public class TopicServiceImpl implements TopicService {
 				for(String user_name : atUsers){
 					User user = userService.getUserByLoginName(user_name);
 					if(null != user && !user.getUid().equals(topic.getUid())){
-						noticeService.save(Types.topic_at.toString(), user.getUid(), tid);
+						noticeService.save(Types.topic_at.toString(), uid, user.getUid(), tid);
 					}
 				}
 			}
@@ -215,7 +220,7 @@ public class TopicServiceImpl implements TopicService {
 				
 				// 通知
 				if(!uid.equals(to_uid)){
-					noticeService.save(Types.comment.toString(), to_uid, tid);
+					noticeService.save(Types.comment.toString(), uid, to_uid, tid);
 					
 					// 通知@的用户
 					Set<String> atUsers = Utils.getAtUsers(content);
@@ -223,7 +228,7 @@ public class TopicServiceImpl implements TopicService {
 						for(String user_name : atUsers){
 							User user = userService.getUserByLoginName(user_name);
 							if(null != user && !user.getUid().equals(uid)){
-								noticeService.save(Types.comment_at.toString(), user.getUid(), cid);
+								noticeService.save(Types.comment_at.toString(), uid, user.getUid(), cid);
 							}
 						}
 					}
@@ -368,4 +373,64 @@ public class TopicServiceImpl implements TopicService {
 		}
 	}
 
+	@Override
+	public Paginator<HomeTopic> getHomeTopics(Integer nid, int page, int limit) {
+		return getTopics(nid, page, limit, "a.weight desc");
+	}
+
+	@Override
+	public Paginator<HomeTopic> getRecentTopics(Integer nid, int page, int limit) {
+		return getTopics(nid, page, limit, "a.update_time desc");
+	}
+
+	private Paginator<HomeTopic> getTopics(Integer nid, int page, int limit, String orderBy){
+		if(page <= 0){
+			page = 1;
+		}
+		if(limit <= 0 || limit >= 50){
+			limit = 20;
+		}
+		String sql = "select b.login_name, b.avatar, a.tid, a.title, a.create_time, a.update_time," +
+				" c.title as node_title, c.slug as node_slug, d.comments from t_topic a " +
+				"left join t_user b on a.uid = b.uid " +
+				"left join t_node c on a.nid = c.nid " +
+				"left join t_topiccount d on a.tid = d.tid " +
+				"where a.status=1 ";
+		if(null != nid){
+			sql += "and a.nid = :p1 ";
+		}
+		sql += "order by " + orderBy;
+
+		Sql2o sql2o = activeRecord.getSql2o();
+		Paginator<HomeTopic> topicPaginator;
+
+		if(null != nid){
+			topicPaginator = PageHelper.go(sql2o, HomeTopic.class, sql, new PageRow(page, limit), nid);
+		} else {
+			topicPaginator = PageHelper.go(sql2o, HomeTopic.class, sql, new PageRow(page, limit));
+		}
+		return topicPaginator;
+	}
+
+	@Override
+	public List<HomeTopic> getHotTopics(int page, int limit) {
+		if(page <= 0){
+			page = 1;
+		}
+		if(limit <= 0 || limit >= 50){
+			limit = 10;
+		}
+
+		String sql = "select b.login_name, b.avatar, a.tid, a.title from t_topic a " +
+				"left join t_user b on a.uid = b.uid " +
+				"left join t_topiccount d on a.tid = d.tid " +
+				"where a.status=1 order by a.weight desc, d.comments desc";
+
+		Sql2o sql2o = activeRecord.getSql2o();
+		Paginator<HomeTopic> topicPaginator = PageHelper.go(sql2o, HomeTopic.class, sql, new PageRow(page, limit));
+		if(null != topicPaginator){
+			return topicPaginator.getList();
+		}
+		return null;
+	}
 }
