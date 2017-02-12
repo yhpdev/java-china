@@ -68,13 +68,13 @@
                     <span>${profile.username} 最近创建的帖子</span>
                 </div>
                 <div class="panel-body essence">
-                	#for(topic : topicPage.results)
+                	#for(topic : topicPage.list)
 		        	<div class="panel panel-default">
 					  <div class="panel-body #if(for.index % 2 == 0)bg-fb#end">
 					  	<i class="fa fa-bookmark-o"></i>&nbsp;<a href="${base_url('/topic/') + topic.tid}">${topic.title}</a>
 					  	<p class="pull-right">
 					  		<span class="label">
-					  			<a style="cursor: default;">发布于 ${timespan(topic.update_time)}</a>
+					  			<a style="cursor: default;">发布于 ${timespan(topic.create_time)}</a>
 					  		</span>
 					  	</p>
 					  </div>
@@ -87,7 +87,7 @@
                     <span>${profile.username} 最近回复了</span>
                 </div>
                 <div class="panel-body">
-					#for(comment : commentPage.results)
+					#for(comment : commentPage.list)
 		        	<div class="panel panel-default">
 					  <div class="panel-body">
 					  	<div>${timespan(comment.reply_time)} 回复了 ${comment.reply_name} 创建的帖子 <a href="${base_url('/topic/') + comment.tid}">${comment.title}</a></div>

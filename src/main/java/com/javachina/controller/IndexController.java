@@ -285,8 +285,6 @@ public class IndexController extends BaseController {
 	 */
 	@Route(value = "/faq", method = HttpMethod.GET)
 	public ModelAndView faq(Request request, Response response){
-		String qa = request.query("aaa");
-		System.out.println(qa);
 		return this.getView("faq");
 	}
 	
@@ -296,14 +294,6 @@ public class IndexController extends BaseController {
 	@Route(value = "/donate", method = HttpMethod.GET)
 	public ModelAndView donate(Request request, Response response){
 		return this.getView("donate");
-	}
-	
-	/**
-	 * robots.txt
-	 */
-	@Route(value = "/robots.txt", method = HttpMethod.GET)
-	public ModelAndView robots(Request request, Response response){
-		return this.getView("robots");
 	}
 
 }

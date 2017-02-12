@@ -44,9 +44,41 @@ public interface TopicService {
 
 	/* 新的 ↓↓↓ */
 
+	/**
+	 * 获取首页帖
+	 *
+	 * @param nid
+	 * @param page
+	 * @param limit
+	 * @return
+	 */
 	Paginator<HomeTopic> getHomeTopics(Integer nid, int page, int limit);
 
+	/**
+	 * 获取最新帖
+	 *
+	 * @param nid
+	 * @param page
+	 * @param limit
+	 * @return
+	 */
 	Paginator<HomeTopic> getRecentTopics(Integer nid, int page, int limit);
 
+	/**
+	 * 获取精华贴
+	 *
+	 * @param page
+	 * @param limit
+	 * @return
+	 */
+	Paginator<HomeTopic> getEssenceTopics(int page, int limit);
+
+	/**
+	 * 获取热门贴
+	 *
+	 * @param page
+	 * @param limie
+	 * @return
+	 */
 	List<HomeTopic> getHotTopics(int page, int limie);
 }

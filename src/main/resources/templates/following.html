@@ -10,7 +10,7 @@
 			    <div class="panel-body">
 			    	#if(null != followingPage)
 			    	<div class="row">
-			        	#for(item : followingPage.results)
+			        	#for(item : followingPage.list)
 			        	<div class="col-md-2 text-center">
 				        	<a href="${base_url('/member/') + item.username}" alt="${item.username}">
 								<img alt="${item.username}" class="avatar avatar-md img-circle" src="${item.avatar}">

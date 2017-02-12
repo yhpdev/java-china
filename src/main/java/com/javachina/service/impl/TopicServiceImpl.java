@@ -383,6 +383,24 @@ public class TopicServiceImpl implements TopicService {
 		return getTopics(nid, page, limit, "a.update_time desc");
 	}
 
+	@Override
+	public Paginator<HomeTopic> getEssenceTopics(int page, int limit) {
+		if(page <= 0){
+			page = 1;
+		}
+		if(limit <= 0 || limit >= 50){
+			limit = 20;
+		}
+		String sql = "select a.tid, a.title, c.title as node_title, c.slug as node_slug from t_topic a " +
+				"left join t_node c on a.nid = c.nid " +
+				"where a.status=1 and a.is_essence=1 order by a.create_time desc, a.update_time desc";
+
+		Sql2o sql2o = activeRecord.getSql2o();
+		Paginator<HomeTopic> topicPaginator = PageHelper.go(sql2o, HomeTopic.class, sql, new PageRow(page, limit));
+		return topicPaginator;
+
+	}
+
 	private Paginator<HomeTopic> getTopics(Integer nid, int page, int limit, String orderBy){
 		if(page <= 0){
 			page = 1;

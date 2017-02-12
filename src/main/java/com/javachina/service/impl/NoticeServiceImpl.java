@@ -8,7 +8,6 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
 import com.javachina.Types;
-import com.javachina.config.DBConfig;
 import com.javachina.kit.Utils;
 import com.javachina.model.Comment;
 import com.javachina.model.Notice;
@@ -143,12 +142,9 @@ public class NoticeServiceImpl implements NoticeService {
 	@Override
 	public boolean read(Integer to_uid) {
 		if(null != to_uid){
-			// 删除
 			try {
-				Notice notice = new Notice();
-				notice.setTo_uid(to_uid);
-				notice.setIs_read(true);
-				return activeRecord.update(notice) > 0;
+				String sql = "update t_notice set is_read = 1 where to_uid = " + to_uid;
+				return activeRecord.execute(sql) > 0;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

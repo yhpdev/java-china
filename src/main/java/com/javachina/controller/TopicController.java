@@ -15,6 +15,7 @@ import com.blade.mvc.view.ModelAndView;
 import com.javachina.Actions;
 import com.javachina.Constant;
 import com.javachina.Types;
+import com.javachina.dto.HomeTopic;
 import com.javachina.kit.MapCache;
 import com.javachina.kit.SessionKit;
 import com.javachina.model.Comment;
@@ -492,14 +493,10 @@ public class TopicController extends BaseController {
 		
 		// 帖子
 		Take tp = new Take(Topic.class);
-		Integer page = request.queryAsInt("p");
-		
-		if(null == page || page < 1){
-			page = 1;
-		}
-		
+		Integer page = request.queryInt("p", 1);
+		Paginator<HomeTopic> topicPage = topicService.getEssenceTopics(page, 15);
 		tp.eq("status", 1).eq("is_essence", 1).desc("create_time", "update_time").page(page, 15);
-		Paginator<Map<String, Object>> topicPage = topicService.getPageList(tp);
+//		Paginator<Map<String, Object>> topicPage = topicService.getPageList(tp);
 		request.attribute("topicPage", topicPage);
 		
 		return this.getView("essence");
