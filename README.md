@@ -17,21 +17,24 @@ Java中国是一款开源免费的论坛程序，致力于打造一个简洁优�
 - 每日励志名言
 - 更多功能还在开发...
 
-## 使用
+## 开发环境使用
 
 1. 建立数据库javachina，编码为utf－8,导入 `javachina.sql`
-2. 导入maven工程或者使用 `war:war` 命令打包一个war包
-3. 启动tomcat，访问 http://127.0.0.1:8080/java-china
+2. 导入maven工程，启动 `Application.java` 的 `main` 函数
+3. 访问 http://127.0.0.1:8099
 
-## 配置 [blade.properties]
+## 配置 [app.properties]
 
-- `blade.dev`：是否是开发者模式(生产环境建议关闭)
+- `server.port`：web服务端口
+- `app.dev`：是否是开发者模式(生产环境建议关闭)
+- `app.aes_salt`：AES盐值
+- `famous.key`：名人名言接口密钥
 - `app.site_url`：你的网站地址
 - `app.version`：当前版本，用户清除静态资源缓存
-- `app.db_cahce`：是否开启数据库缓存(生产环境建议开启)
-- `qiniu`：这部分修改为你的七牛空间配置
-- `email`：这部分修改为你的邮箱配置，否则无法注册
-- `db`：这部分为数据库配置，修改为你连接的数据库，用户，密码
+- `qiniu.*`：七牛空间配置
+- `mail.*`：邮箱配置，不配置无法注册
+
+数据库配置在 `druid.properties` 配置文件。
 
 ## 预览图 
 
@@ -48,5 +51,3 @@ Java中国是一款开源免费的论坛程序，致力于打造一个简洁优�
 ## 捐赠我们
 
 ![alt](http://7xsk2r.com2.z0.glb.clouddn.com/alipay.png)
-
-
