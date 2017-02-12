@@ -9,7 +9,7 @@
                 <div class="panel-body">
                 	#if(null != noticePage)
                 	<ul class="media-list">
-                    	#for(item : noticePage.results)
+                    	#for(item : noticePage.list)
                     	<li class="media" id="${item.id}">
                             <div class="media-body">
                                 <h4 class="media-heading topic-list-heading"><small>
@@ -30,13 +30,13 @@
                     	#end
                     </ul>
                     
-                    #if(noticePage.totalPage > 1)
+                    #if(noticePage.pages > 1)
 					<ul class="pager">
-						#if(noticePage.page > 1)
-						<li class="pull-left"><a href="${base_url('/notices?p=') + noticePage.prev_page}">上一页</a></li>
+						#if(noticePage.pageNum > 1)
+						<li class="pull-left"><a href="${base_url('/notices?p=') + noticePage.prevPage}">上一页</a></li>
 						#end
-						#if(noticePage.totalPage > 1 && noticePage.page != noticePage.totalPage)
-						<li class="pull-right"><a href="${base_url('/notices?p=') + noticePage.next_page}">下一页</a></li>
+						#if(noticePage.pages > 1 && noticePage.pageNum != noticePage.pages)
+						<li class="pull-right"><a href="${base_url('/notices?p=') + noticePage.nextPage}">下一页</a></li>
 						#end
 					</ul>
 					#end
