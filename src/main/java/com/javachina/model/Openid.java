@@ -1,27 +1,25 @@
 package com.javachina.model;
 
+import java.io.Serializable;
+import java.util.Date;
 import com.blade.jdbc.annotation.Table;
 
-import java.io.Serializable;
-
-/**
- * Activecode对象
- */
+//
 @Table(name = "t_openid", pk = "id")
 public class Openid implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private Integer id;
-	
+
 	private String type;
-	
+
 	private Integer open_id;
-	
+
 	private Integer uid;
-	
+
 	private Integer create_time;
-	
+
 	public Openid(){}
 
 	public Integer getId() {
@@ -32,6 +30,14 @@ public class Openid implements Serializable {
 		this.id = id;
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
 	public Integer getOpen_id() {
 		return open_id;
 	}
@@ -39,7 +45,7 @@ public class Openid implements Serializable {
 	public void setOpen_id(Integer open_id) {
 		this.open_id = open_id;
 	}
-	
+
 	public Integer getUid() {
 		return uid;
 	}
@@ -56,12 +62,5 @@ public class Openid implements Serializable {
 		this.create_time = create_time;
 	}
 
-	public String getType() {
-		return type;
-	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-	
 }

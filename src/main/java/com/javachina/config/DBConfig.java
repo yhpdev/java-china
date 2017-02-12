@@ -41,6 +41,11 @@ public class DBConfig implements BaseConfig {
             Constant.SITE_URL = config.get("app.site_url");
             Constant.CDN_URL = config.get("app.cdn_url");
 
+            String cdn_url = configuration.config().get("qiniu.cdn");
+            String aesSalt = configuration.config().get("app.aes_salt", "0123456789abcdef");
+            Constant.CDN_URL = cdn_url;
+            Constant.AES_SALT = aesSalt;
+
             /**
              * github密钥配置
              */

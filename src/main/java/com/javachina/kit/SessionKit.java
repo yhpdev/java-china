@@ -50,12 +50,10 @@ public class SessionKit {
 	
 	private static final int one_month = 30*24*60*60;
 
-	private static String encryptionKey = "0123456789abcdef";
-
 	public static void setCookie(Response response, String cookieName, Integer uid) {
 		if(null != response && StringKit.isNotBlank(cookieName) && null != uid){
 			try {
-				String val = Utils.encrypt(uid.toString(), encryptionKey);
+				String val = Utils.encrypt(uid.toString(), Constant.AES_SALT);
 				boolean isSSL = Constant.SITE_URL.startsWith("https");
 				response.cookie("/", cookieName, val, one_month, isSSL);
 			} catch (Exception e){}
@@ -66,7 +64,7 @@ public class SessionKit {
 		if(null != response && StringKit.isNotBlank(cookieName) && StringKit.isNotBlank(value)){
 
 			try {
-				String data = Utils.encrypt(value, encryptionKey);
+				String data = Utils.encrypt(value, Constant.AES_SALT);
 				boolean isSSL = Constant.SITE_URL.startsWith("https");
 				response.removeCookie(cookieName);
 
@@ -82,7 +80,7 @@ public class SessionKit {
 			String val = request.cookie(cookieName);
 			if(StringKit.isNotBlank(val)){
 				try {
-					return Utils.decrypt(val, encryptionKey);
+					return Utils.decrypt(val, Constant.AES_SALT);
 				} catch (Exception e) {
 				}
 				return "";

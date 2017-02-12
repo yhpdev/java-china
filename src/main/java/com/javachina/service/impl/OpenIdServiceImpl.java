@@ -5,7 +5,6 @@ import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
-import com.javachina.config.DBConfig;
 import com.javachina.model.Openid;
 import com.javachina.service.OpenIdService;
 
@@ -34,8 +33,9 @@ public class OpenIdServiceImpl implements OpenIdService {
 				Openid openid = new Openid();
 				openid.setType(type);
 				openid.setOpen_id(open_id);
+				openid.setUid(uid);
 				openid.setCreate_time(DateKit.getCurrentUnixTime());
-				activeRecord.insert(open_id);
+				activeRecord.insert(openid);
 				return true;
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -27,8 +27,7 @@ public class TemplateConfig implements BaseConfig {
         resolver.registerFunctions(Funcs.class);
         resolver.registerMethods(Methods.class);
         Constant.VIEW_CONTEXT = context;
-        String cdn_url = configuration.config().get("qiniu.cdn");
-        Constant.CDN_URL = cdn_url;
+
         Constant.VIEW_CONTEXT.set("cdn_url", Constant.CDN_URL);
         Constant.VIEW_CONTEXT.set("cdn", Constant.CDN_URL);
         ViewSettings.$().templateEngine(templateEngine);
