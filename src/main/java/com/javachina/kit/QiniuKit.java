@@ -1,17 +1,17 @@
 package com.javachina.kit;
 
-import java.io.File;
-import java.util.Random;
-
 import com.blade.Blade;
 import com.blade.kit.StringKit;
-import com.qiniu.common.Config;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
+import com.qiniu.storage.Configuration;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
+
+import java.io.File;
+import java.util.Random;
 
 public class QiniuKit {
 
@@ -21,11 +21,13 @@ public class QiniuKit {
 	private static String BUCKET_NAME = "";
 	private static String[] CDN = null;
 	private static Auth AUTH = null;
-
+	private static Configuration configuration;
 	static {
 		
-		Config.zone = new Zone("http://up.qiniug.com", "http://up.qiniu.com");
-		
+//		Config.zone = new Zone("http://up.qiniug.com", "http://up.qiniu.com");
+
+		Zone zone = Zone.autoZone();
+		configuration = new Configuration(zone);
 		ACCESS_KEY = Blade.$().config().get("qiniu.ACCESS_KEY");
 		SECRET_KEY = Blade.$().config().get("qiniu.SECRET_KEY");
 		BUCKET_NAME = Blade.$().config().get("qiniu.BUCKET_NAME");
@@ -45,7 +47,7 @@ public class QiniuKit {
 	public static boolean upload(File file, String key) {
 		
 		// 创建上传对象
-		UploadManager uploadManager = new UploadManager();
+		UploadManager uploadManager = new UploadManager(configuration);
 		try {
 			// 调用put方法上传
 			Response res = uploadManager.put(file, key, getUpToken(key));

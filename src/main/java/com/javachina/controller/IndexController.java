@@ -202,8 +202,8 @@ public class IndexController extends BaseController {
 		}
 		
 		Integer page = request.queryAsInt("page");
-		
-		Paginator<Map<String, Object>> topicPage = topicService.getRecentTopic(node.getNid(), page, 15);
+
+		Paginator<HomeTopic> topicPage = topicService.getRecentTopics(node.getNid(), page, 15);
 		request.attribute("topicPage", topicPage);
 		
 		Map<String, Object> nodeMap = nodeService.getNodeDetail(null, node.getNid());

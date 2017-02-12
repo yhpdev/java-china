@@ -95,10 +95,10 @@ public class TopicServiceImpl implements TopicService {
 			topic.setUpdate_time(time);
 			topic.setStatus(1);
 
-			Integer tid = activeRecord.insert(topic);
+			Long tid = activeRecord.insert(topic);
 			Integer uid = topic.getUid();
-			topicCountService.save(tid, time);
-			this.updateWeight(tid);
+			topicCountService.save(tid.intValue(), time);
+			this.updateWeight(tid.intValue());
 			// 更新节点下的帖子数
 			nodeService.updateCount(topic.getNid(), Types.topics.toString(), +1);
 			// 更新总贴数
@@ -110,11 +110,11 @@ public class TopicServiceImpl implements TopicService {
 				for(String user_name : atUsers){
 					User user = userService.getUserByLoginName(user_name);
 					if(null != user && !user.getUid().equals(topic.getUid())){
-						noticeService.save(Types.topic_at.toString(), uid, user.getUid(), tid);
+						noticeService.save(Types.topic_at.toString(), uid, user.getUid(), tid.intValue());
 					}
 				}
 			}
-			return tid;
+			return tid.intValue();
 		} catch (Exception e) {
 			throw e;
 		}

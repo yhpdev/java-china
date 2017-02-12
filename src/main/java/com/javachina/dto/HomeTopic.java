@@ -15,7 +15,7 @@ public class HomeTopic implements Serializable {
     private Integer update_time;
     private String node_title;
     private String node_slug;
-    private Integer comments;
+    private int comments;
 
     public Integer getTid() {
         return tid;
@@ -73,11 +73,11 @@ public class HomeTopic implements Serializable {
         this.node_slug = node_slug;
     }
 
-    public Integer getComments() {
+    public int getComments() {
         return comments;
     }
 
-    public void setComments(Integer comments) {
+    public void setComments(int comments) {
         this.comments = comments;
     }
 

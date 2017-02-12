@@ -35,16 +35,16 @@
 					<div class="box-tab">
 						<div class="tab-content">
 							<div class="tab-pane active" id="home">
-								#if(null == topicPage.results || topicPage.results.size() == 0)
+								#if(null == topicPage.list || topicPage.list.size() == 0)
 								<div class="alert alert-info alert-dismissable">
 									该节点下暂时还木有帖子呢 <i class="twa twa-lg twa-sparkles"></i>
 								</div>
 								#else
 								<section class="widget bg-white post-comments">
-									#for(topic : topicPage.results)
+									#for(topic : topicPage.list)
 									<div class="media">
-										<a class="pull-left" href="${base_url('/member/') + topic.user_name}"> 
-											<img class="media-object avatar avatar-sm" src="${topic.avatar}" alt="${topic.user_name}">
+										<a class="pull-left" href="${base_url('/member/') + topic.login_name}">
+											<img class="media-object avatar avatar-sm" src="${cdn_url}/${topic.avatar}" alt="${topic.login_name}">
 										</a>
 										<div class="comment">
 											<div class="comment-author h6 no-margin">
@@ -57,13 +57,9 @@
 												<a href="${base_url('/topic/') + topic.tid}">${topic.title}</a>
 											</div>
 											<div class="comment-bt">
-												<span class="label label-default"><a href="${base_url('/go/') + topic.node_slug}">${topic.node_name}</a></span> &nbsp;•&nbsp; 
-												<strong><a href="${base_url('/member/') + topic.user_name}">${topic.user_name}</a></strong>
+												<span class="label label-default"><a href="${base_url('/go/') + topic.node_slug}">${topic.node_title}</a></span> &nbsp;•&nbsp;
+												<strong><a href="${base_url('/member/') + topic.login_name}">${topic.login_name}</a></strong>
 												 &nbsp;•&nbsp; <span>${timespan(topic.update_time)}</span>
-												 #if(topic.comments > 0)
-												 &nbsp;•&nbsp; 最后回复来自
-												 <strong><a href="${base_url('/member/') + topic.reply_name}">${topic.reply_name}</a></strong>
-												 #end
 											</div>
 										</div>
 									</div>
@@ -72,13 +68,13 @@
 								</section>
 								#end
 								
-								#if(topicPage.totalPage > 1)
+								#if(topicPage.pages > 1)
 								<ul class="pager">
-									#if(topicPage.page > 1)
-									<li class="pull-left"><a href="${base_url('/?tab=') + node.node_slug + '&p=' + topicPage.prev_page}">上一页</a></li>
+									#if(topicPage.pageNum > 1)
+									<li class="pull-left"><a href="${base_url('/?tab=') + node.node_slug + '&p=' + topicPage.prevPage}">上一页</a></li>
 									#end
-									#if(topicPage.totalPage > 1 && topicPage.page != topicPage.totalPage)
-									<li class="pull-right"><a href="${base_url('/?tab=') + node.node_slug + '&p=' + topicPage.next_page}">下一页</a></li>
+									#if(topicPage.pages > 1 && topicPage.pageNum != topicPage.pages)
+									<li class="pull-right"><a href="${base_url('/?tab=') + node.node_slug + '&p=' + topicPage.nextPage}">下一页</a></li>
 									#end
 								</ul>
 								#end
