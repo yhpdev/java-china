@@ -2,6 +2,7 @@ package com.javachina;
 
 import com.blade.kit.base.Config;
 import jetbrick.template.JetGlobalContext;
+import jetbrick.template.resolver.ParameterUtils;
 
 import java.util.HashMap;
 import java.util.Map;

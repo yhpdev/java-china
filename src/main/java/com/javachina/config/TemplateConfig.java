@@ -26,10 +26,14 @@ public class TemplateConfig implements BaseConfig {
         GlobalResolver resolver = templateEngine.getGlobalResolver();
         resolver.registerFunctions(Funcs.class);
         resolver.registerMethods(Methods.class);
+
+        String version = configuration.config().get("app.version", "1.0");
         Constant.VIEW_CONTEXT = context;
 
         Constant.VIEW_CONTEXT.set("cdn_url", Constant.CDN_URL);
         Constant.VIEW_CONTEXT.set("cdn", Constant.CDN_URL);
+        Constant.VIEW_CONTEXT.set("version", version);
+
         ViewSettings.$().templateEngine(templateEngine);
     }
 }
