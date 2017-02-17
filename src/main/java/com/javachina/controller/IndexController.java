@@ -1,6 +1,5 @@
 package com.javachina.controller;
 
-import com.blade.Blade;
 import com.blade.ioc.annotation.Inject;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
@@ -229,8 +228,6 @@ public class IndexController extends BaseController {
         if (null != fileItems && fileItems.length > 0) {
 
             FileItem fileItem = fileItems[0];
-
-            String type = request.query("type");
             String suffix = FileKit.getExtension(fileItem.fileName());
             if (StringKit.isNotBlank(suffix)) {
                 suffix = "." + suffix;
@@ -239,31 +236,24 @@ public class IndexController extends BaseController {
                 return;
             }
 
-            if (null == type) {
-                type = "temp";
-            }
-
-            String saveName = DateKit.dateFormat(new Date(), "yyyyMMddHHmmssSSS") + "_" + StringKit.getRandomChar(10) + suffix;
-            File file = new File(Blade.$().webRoot() + File.separator + Constant.UPLOAD_FOLDER + File.separator + saveName);
+            String saveName = user.getUid() + "/" + DateKit.dateFormat(new Date(), "yyyyMMddHHmmssSSS") + "_" + StringKit.getRandomChar(10) + suffix;
+            File file = new File(Constant.UPLOAD_DIR + File.separator + saveName);
 
             try {
 
                 Utils.copyFileUsingFileChannels(fileItem.file(), file);
 
-                String filePath = Constant.UPLOAD_FOLDER + "/" + saveName;
+                String filePath = Constant.UPLOAD_DIR + "/" + saveName;
 
                 JSONObject res = new JSONObject();
                 res.put("status", 200);
                 res.put("savekey", filePath);
                 res.put("savepath", filePath);
                 res.put("url", Constant.SITE_URL + "/" + filePath);
-
                 response.json(res.toString());
-
             } catch (Exception e) {
                 LOGGER.error("上传文件失败", e);
             }
-
         }
     }
 

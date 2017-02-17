@@ -8,9 +8,8 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.DateKit;
 import com.blade.kit.FileKit;
 import com.blade.kit.StringKit;
-import com.javachina.ImageTypes;
 import com.javachina.exception.TipException;
-import com.javachina.kit.QiniuKit;
+import com.javachina.ext.Funcs;
 import com.javachina.kit.Utils;
 import com.javachina.model.Node;
 import com.javachina.model.NodeTree;
@@ -170,7 +169,7 @@ public class NodeServiceImpl implements NodeService {
 			map.put("childs", childs);
 			map.put("description", node.getDescription());
 			if(StringKit.isNotBlank(node.getPic())){
-				String pic = Utils.getAvatar(node.getPic(), ImageTypes.small);
+				String pic = Funcs.avatar_url(node.getPic());
 				map.put("pic", pic);
 			}
 		}
@@ -216,7 +215,7 @@ public class NodeServiceImpl implements NodeService {
 						ext = "png";
 					}
 					String key = "node/" + node.getSlug() + "/" + StringKit.getRandomChar(4) + "/" + StringKit.getRandomNumber(4) + "." + ext;
-					QiniuKit.upload(file, key);
+					Utils.upload(file, key);
 					node.setPic(key);
 				}
 			}
