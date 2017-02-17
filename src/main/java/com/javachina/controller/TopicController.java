@@ -185,7 +185,7 @@ public class TopicController extends BaseController {
 			topicService.update(tid, nid, title, content);
 			userlogService.save(user.getUid(), Actions.UPDATE_TOPIC, content);
 			
-			this.success(response, "帖子编辑成功");
+			this.success(response, tid);
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.error(response, "帖子编辑失败");
@@ -490,13 +490,11 @@ public class TopicController extends BaseController {
 	 */
 	@Route(value = "/essence", method = HttpMethod.GET)
 	public ModelAndView essencePage(Request request, Response response){
-		
 		// 帖子
 		Take tp = new Take(Topic.class);
 		Integer page = request.queryInt("p", 1);
 		Paginator<HomeTopic> topicPage = topicService.getEssenceTopics(page, 15);
 		tp.eq("status", 1).eq("is_essence", 1).desc("create_time", "update_time").page(page, 15);
-//		Paginator<Map<String, Object>> topicPage = topicService.getPageList(tp);
 		request.attribute("topicPage", topicPage);
 		
 		return this.getView("essence");

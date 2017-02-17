@@ -212,11 +212,10 @@ $('.topic-footer .essence').on('click', function(){
 //管理员删帖
 $('.topic-footer .deltopic').on('click', function(){
 	var tid = $(this).attr("tid");
-	var _this = $(this);
-	$.post(BASE + '/essence', {tid : tid}, function(response){
+	$.post(BASE + '/delete', {tid : tid}, function(response){
 		if(response){
 			if(response.status == 200){
-				window.location.reload();	
+				window.location.href= BASE + '/';
 			} else if(response.status == 401){
 				go_signin();
 			} else{
