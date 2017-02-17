@@ -16,6 +16,7 @@ import com.javachina.Actions;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.dto.HomeTopic;
+import com.javachina.exception.TipException;
 import com.javachina.kit.MapCache;
 import com.javachina.kit.SessionKit;
 import com.javachina.model.Comment;
@@ -187,9 +188,13 @@ public class TopicController extends BaseController {
 			
 			this.success(response, tid);
 		} catch (Exception e) {
-			e.printStackTrace();
-			this.error(response, "帖子编辑失败");
-			return;
+			String msg = "编辑帖子失败";
+			if (e instanceof TipException) {
+				msg = e.getMessage();
+			} else {
+				LOGGER.error(msg, e);
+			}
+			this.error(response, msg);
 		}
 	}
 	
@@ -255,8 +260,13 @@ public class TopicController extends BaseController {
 				this.error(response, "帖子发布失败");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			this.error(response, "帖子发布失败");
+			String msg = "发布帖子失败";
+			if (e instanceof TipException) {
+				msg = e.getMessage();
+			} else {
+				LOGGER.error(msg, e);
+			}
+			this.error(response, msg);
 		}
 	}
 	
@@ -281,7 +291,7 @@ public class TopicController extends BaseController {
 		}
 		
 		Topic topic = topicService.getTopic(tid);
-		if(null == topic){
+		if(null == topic || topic.getStatus() != 1){
 			response.go("/");
 			return null;
 		}
@@ -385,8 +395,13 @@ public class TopicController extends BaseController {
 				this.error(response, "帖子评论失败");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			this.error(response, "帖子评论失败");
+			String msg = "评论帖子失败";
+			if (e instanceof TipException) {
+				msg = e.getMessage();
+			} else {
+				LOGGER.error(msg, e);
+			}
+			this.error(response, msg);
 		}
 	}
 	
@@ -425,7 +440,13 @@ public class TopicController extends BaseController {
 			
 			this.success(response, tid);
 		} catch (Exception e) {
-			e.printStackTrace();
+			String msg = "设置失败";
+			if (e instanceof TipException) {
+				msg = e.getMessage();
+			} else {
+				LOGGER.error(msg, e);
+			}
+			this.error(response, msg);
 		}
 	}
 	
@@ -456,7 +477,13 @@ public class TopicController extends BaseController {
 			}
 			this.success(response, tid);
 		} catch (Exception e) {
-			e.printStackTrace();
+			String msg = "设置失败";
+			if (e instanceof TipException) {
+				msg = e.getMessage();
+			} else {
+				LOGGER.error(msg, e);
+			}
+			this.error(response, msg);
 		}
 	}
 	
@@ -481,7 +508,13 @@ public class TopicController extends BaseController {
 			topicService.delete(tid);
 			this.success(response, tid);
 		} catch (Exception e) {
-			e.printStackTrace();
+			String msg = "删除帖子失败";
+			if (e instanceof TipException) {
+				msg = e.getMessage();
+			} else {
+				LOGGER.error(msg, e);
+			}
+			this.error(response, msg);
 		}
 	}
 	

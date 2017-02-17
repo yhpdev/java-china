@@ -116,7 +116,7 @@ public class NodeServiceImpl implements NodeService {
 	}
 	
 	@Override
-	public void save(Node node) throws Exception {
+	public void save(Node node) {
 		if(null == node){
 			throw new TipException("节点信息为空");
 		}
@@ -131,7 +131,7 @@ public class NodeServiceImpl implements NodeService {
 	}
 	
 	@Override
-	public void delete(Integer nid) throws Exception {
+	public void delete(Integer nid) {
 		if(null == nid){
 			throw new TipException("节点id为空");
 		}
@@ -185,7 +185,7 @@ public class NodeServiceImpl implements NodeService {
 	}
 
 	@Override
-	public void updateCount(Integer nid, String type, int count) throws Exception {
+	public void updateCount(Integer nid, String type, int count) {
 		if(null == nid){
 			throw new TipException("节点id为空");
 		}
@@ -201,7 +201,7 @@ public class NodeServiceImpl implements NodeService {
 	}
 
 	@Override
-	public void update(Node node) throws Exception {
+	public void update(Node node) {
 		try {
 			if(null == node){
 				throw new TipException("节点信息为空");
