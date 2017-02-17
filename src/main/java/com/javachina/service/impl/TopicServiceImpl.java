@@ -9,10 +9,10 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.CollectionKit;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
-import com.javachina.ImageTypes;
 import com.javachina.Types;
 import com.javachina.dto.HomeTopic;
 import com.javachina.exception.TipException;
+import com.javachina.ext.Funcs;
 import com.javachina.ext.PageHelper;
 import com.javachina.kit.Utils;
 import com.javachina.model.*;
@@ -174,7 +174,7 @@ public class TopicServiceImpl implements TopicService {
 		map.put("update_time", topic.getUpdate_time());
 		map.put("user_name", user.getLogin_name());
 		
-		String avatar = Utils.getAvatar(user.getAvatar(), ImageTypes.small);
+		String avatar = Funcs.avatar_url(user.getAvatar());
 		
 		map.put("avatar", avatar);
 		map.put("node_name", node.getTitle());

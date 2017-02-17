@@ -44,6 +44,7 @@ public class DBConfig implements BaseConfig {
             Constant.SITE_URL = config.get("app.site_url");
             Constant.CDN_URL = config.get("app.cdn_url");
             Constant.AES_SALT = config.get("app.aes_salt", "0123456789abcdef");
+            Constant.UPLOAD_DIR = config.get("app.upload_dir");
 
             /**
              * github密钥配置

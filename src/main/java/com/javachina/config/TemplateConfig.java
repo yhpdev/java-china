@@ -8,7 +8,6 @@ import com.blade.mvc.view.ViewSettings;
 import com.blade.mvc.view.template.JetbrickTemplateEngine;
 import com.javachina.Constant;
 import com.javachina.ext.Funcs;
-import com.javachina.ext.Methods;
 import jetbrick.template.JetGlobalContext;
 import jetbrick.template.resolver.GlobalResolver;
 
@@ -25,7 +24,6 @@ public class TemplateConfig implements BaseConfig {
         JetGlobalContext context = templateEngine.getGlobalContext();
         GlobalResolver resolver = templateEngine.getGlobalResolver();
         resolver.registerFunctions(Funcs.class);
-        resolver.registerMethods(Methods.class);
 
         String version = configuration.config().get("app.version", "1.0");
         Constant.VIEW_CONTEXT = context;
