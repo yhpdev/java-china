@@ -63,20 +63,22 @@ public class NodeServiceImpl implements NodeService {
 		List<NodeTree> nodeTrees = new ArrayList<>();
 
 		List<Node> parents = activeRecord.list(take);
-		for(Node parent : parents){
-			NodeTree nodeTree = new NodeTree();
-			nodeTree.setNid(parent.getNid());
-			nodeTree.setPid(parent.getPid());
-			nodeTree.setTitle(parent.getTitle());
-			nodeTree.setSlug(parent.getSlug());
+		if (parents != null) {
+			for(Node parent : parents){
+				NodeTree nodeTree = new NodeTree();
+				nodeTree.setNid(parent.getNid());
+				nodeTree.setPid(parent.getPid());
+				nodeTree.setTitle(parent.getTitle());
+				nodeTree.setSlug(parent.getSlug());
 
-			Take temp = new Take(Node.class);
-			temp.and("is_del", 0).and("pid", parent.getNid()).orderby("topics desc");
+				Take temp = new Take(Node.class);
+				temp.and("is_del", 0).and("pid", parent.getNid()).orderby("topics desc");
 
-			List<Node> items = activeRecord.list(temp);
-			nodeTree.setItems(items);
-			nodeTree.setChilds( null != items ? items.size() : 0);
-			nodeTrees.add(nodeTree);
+				List<Node> items = activeRecord.list(temp);
+				nodeTree.setItems(items);
+				nodeTree.setChilds( null != items ? items.size() : 0);
+				nodeTrees.add(nodeTree);
+			}
 		}
 		return nodeTrees;
 	}

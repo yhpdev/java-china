@@ -173,6 +173,7 @@ public class TopicServiceImpl implements TopicService {
 		map.put("create_time", topic.getCreate_time());
 		map.put("update_time", topic.getUpdate_time());
 		map.put("user_name", user.getLogin_name());
+		map.put("uid", topic.getUid());
 		
 		String avatar = Funcs.avatar_url(user.getAvatar());
 		
