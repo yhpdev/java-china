@@ -109,6 +109,11 @@ public class IndexController extends BaseController {
 		}
 
 		Node node = new Node();
+		node.setTitle(title);
+		node.setDescription(description);
+		node.setSlug(node_slug);
+		node.setPid(pid);
+		node.setPic(node_pic);
 
 		try {
 			nodeService.save(node);
