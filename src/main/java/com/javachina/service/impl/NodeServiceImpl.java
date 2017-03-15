@@ -8,6 +8,7 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.DateKit;
 import com.blade.kit.FileKit;
 import com.blade.kit.StringKit;
+import com.blade.kit.Tools;
 import com.javachina.exception.TipException;
 import com.javachina.ext.Funcs;
 import com.javachina.kit.Utils;
@@ -208,7 +209,7 @@ public class NodeServiceImpl implements NodeService {
 				throw new TipException("节点信息为空");
 			}
 
-			String node_pic = node.getPic();
+			/*String node_pic = node.getPic();
 			if(StringKit.isNotBlank(node_pic)){
 				File file = new File(node_pic);
 				if(file.exists()){
@@ -217,11 +218,14 @@ public class NodeServiceImpl implements NodeService {
 						ext = "png";
 					}
 					String key = "node/" + node.getSlug() + "/" + StringKit.getRandomChar(4) + "/" + StringKit.getRandomNumber(4) + "." + ext;
+
+					Tools.copyFileUsingFileChannels(file, file);
+					f.file().delete();
+
 					Utils.upload(file, key);
 					node.setPic(key);
 				}
-			}
-
+			}*/
 			activeRecord.update(node);
 		} catch (Exception e) {
 			throw e;

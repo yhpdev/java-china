@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public final class Constant {
 
-	public static Config config;
+	public static Config config = new Config();
 
 	/**
 	 * 登录用户session key
