@@ -290,7 +290,7 @@ public class TopicServiceImpl implements TopicService {
 	@Override
 	public void refreshWeight() {
 		try {
-			List<Integer> topics = activeRecord.list("select tid from t_topic where status = 1", Integer.class);
+			List<Integer> topics = activeRecord.list(Integer.class, "select tid from t_topic where status = 1");
 			if(null != topics) {
 				for(Integer tid : topics){
 					this.updateWeight(tid);
@@ -366,7 +366,7 @@ public class TopicServiceImpl implements TopicService {
 				"left join t_node c on a.nid = c.nid " +
 				"where a.status=1 and a.is_essence=1 order by a.create_time desc, a.update_time desc";
 
-		Sql2o sql2o = activeRecord.getSql2o();
+		Sql2o sql2o = activeRecord.sql2o();
 		Paginator<HomeTopic> topicPaginator = PageHelper.go(sql2o, HomeTopic.class, sql, new PageRow(page, limit));
 		return topicPaginator;
 
@@ -390,7 +390,7 @@ public class TopicServiceImpl implements TopicService {
 		}
 		sql += "order by " + orderBy;
 
-		Sql2o sql2o = activeRecord.getSql2o();
+		Sql2o sql2o = activeRecord.sql2o();
 		Paginator<HomeTopic> topicPaginator;
 
 		if(null != nid){
@@ -415,7 +415,7 @@ public class TopicServiceImpl implements TopicService {
 				"left join t_topiccount d on a.tid = d.tid " +
 				"where a.status=1 order by a.weight desc, d.comments desc";
 
-		Sql2o sql2o = activeRecord.getSql2o();
+		Sql2o sql2o = activeRecord.sql2o();
 		Paginator<HomeTopic> topicPaginator = PageHelper.go(sql2o, HomeTopic.class, sql, new PageRow(page, limit));
 		if(null != topicPaginator){
 			return topicPaginator.getList();

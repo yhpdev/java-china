@@ -5,7 +5,6 @@ import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.DateKit;
-import com.javachina.config.DBConfig;
 import com.javachina.kit.Utils;
 import com.javachina.model.Userlog;
 import com.javachina.service.UserlogService;
@@ -18,7 +17,7 @@ public class UserlogServiceImpl implements UserlogService {
 
 	@Override
 	public void save(final Integer uid, final String action, final String content) {
-		final String ip = Utils.getIpAddr(WebContextHolder.me().getRequest());
+		final String ip = Utils.getIpAddr(WebContextHolder.me().request());
 		Utils.run( () -> {
 			Userlog userlog = new Userlog();
 			userlog.setUid(uid);

@@ -40,7 +40,7 @@ public class SessionKit {
 	}
 	
 	public static LoginUser getLoginUser() {
-		Session session = WebContextHolder.me().getRequest().session();
+		Session session = WebContextHolder.me().session();
 		if(null == session){
 			return null;
 		}
@@ -68,7 +68,7 @@ public class SessionKit {
 				boolean isSSL = Constant.SITE_URL.startsWith("https");
 				response.removeCookie(cookieName);
 
-				String path = WebContextHolder.me().getContext().getContextPath();
+				String path = WebContextHolder.servletContext().getContextPath();
 				response.cookie(path, cookieName, data, 604800, isSSL);
 			} catch (Exception e){
 			}

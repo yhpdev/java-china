@@ -4,7 +4,6 @@ import com.blade.ioc.annotation.Inject;
 import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.kit.DateKit;
-import com.javachina.config.DBConfig;
 import com.javachina.model.Link;
 import com.javachina.service.LinkService;
 

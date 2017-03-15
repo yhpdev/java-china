@@ -8,7 +8,6 @@ import com.blade.mvc.http.Response;
 import com.blade.mvc.interceptor.Interceptor;
 import com.javachina.Constant;
 import com.javachina.kit.SessionKit;
-import com.javachina.kit.Utils;
 import com.javachina.model.LoginUser;
 import com.javachina.service.UserService;
 import org.slf4j.Logger;
@@ -25,11 +24,10 @@ public class BaseInterceptor implements Interceptor {
 	@Override
 	public boolean before(Request request, Response response) {
 		
-		LOGGE.info("UA >>> " + request.userAgent());
-		LOGGE.info("用户访问地址 >>> " + request.raw().getRequestURI() + ", 来路地址  >>> " + Utils.getIpAddr(request));
+		LOGGE.info("User Agent: {}", request.userAgent());
+		LOGGE.info("请求: {}, IP: {}", request.uri(), request.address());
 
 		LoginUser user = SessionKit.getLoginUser();
-		
 		if(null == user){
 			String val = SessionKit.getCookie(request, Constant.USER_IN_COOKIE);
 			if(null != val){

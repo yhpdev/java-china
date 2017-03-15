@@ -5,7 +5,6 @@ import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
-import com.javachina.config.DBConfig;
 import com.javachina.model.Userinfo;
 import com.javachina.service.UserinfoService;
 

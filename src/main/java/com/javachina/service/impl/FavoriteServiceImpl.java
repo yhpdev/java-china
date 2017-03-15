@@ -8,7 +8,6 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
 import com.javachina.Types;
-import com.javachina.config.DBConfig;
 import com.javachina.model.Favorite;
 import com.javachina.model.Topic;
 import com.javachina.service.*;
