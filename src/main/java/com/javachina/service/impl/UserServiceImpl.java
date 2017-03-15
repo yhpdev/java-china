@@ -117,12 +117,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean resetPwd(String email) {
-
-        return false;
-    }
-
-    @Override
     public User signin(String loginName, String passWord) {
         if (StringKit.isBlank(loginName) || StringKit.isBlank(passWord)) {
             return null;
@@ -171,30 +165,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateAvatar(Integer uid, String avatar_path) {
-        try {
-            if (null == uid || StringKit.isBlank(avatar_path)) {
-                return false;
-            }
-
-            File file = new File(avatar_path);
-            if (file.exists()) {
-
-                User user = new User();
-                user.setUid(uid);
-
-                String ext = FileKit.getExtension(file.getName());
-                if (StringKit.isBlank(ext)) {
-                    ext = "png";
-                }
-
-                String key = "avatar/" + user.getLogin_name() + "/" + StringKit.getRandomChar(4) + "/" + StringKit.getRandomNumber(4) + "." + ext;
-                user.setAvatar(key);
-                activeRecord.update(user);
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    public boolean update(User user) {
+        if(null != user && null != user.getUid()){
+            return activeRecord.update(user) > 0;
         }
         return false;
     }

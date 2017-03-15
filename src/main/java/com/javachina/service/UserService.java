@@ -31,9 +31,7 @@ public interface UserService {
 
     boolean updateStatus(Integer uid, Integer status);
 
-    boolean resetPwd(String email);
-
-    boolean updateAvatar(Integer uid, String avatar_path);
+    boolean update(User user);
 
     boolean updatePwd(Integer uid, String new_pwd);
 

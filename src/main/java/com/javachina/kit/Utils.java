@@ -17,11 +17,9 @@ import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -136,22 +134,6 @@ public class Utils {
         return false;
     }
 
-    @SuppressWarnings("resource")
-    public static void copyFileUsingFileChannels(File source, File dest) throws IOException {
-        FileChannel inputChannel = null;
-        FileChannel outputChannel = null;
-        try {
-            inputChannel = new FileInputStream(source).getChannel();
-            outputChannel = new FileOutputStream(dest).getChannel();
-            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
-        } finally {
-            assert inputChannel != null;
-            inputChannel.close();
-            assert outputChannel != null;
-            outputChannel.close();
-        }
-    }
-
     public static void run(Runnable t) {
         Executors.newSingleThreadExecutor().submit(t);
     }
@@ -245,6 +227,27 @@ public class Utils {
             cleanValue = scriptPattern.matcher(cleanValue).replaceAll("");
         }
         return cleanValue;
+    }
+
+    /**
+     * 判断文件是否是图片类型
+     *
+     * @param imageFile
+     * @return
+     */
+    public static boolean isImage(File imageFile) {
+        if (!imageFile.exists()) {
+            return false;
+        }
+        try {
+            Image img = ImageIO.read(imageFile);
+            if (img == null || img.getWidth(null) <= 0 || img.getHeight(null) <= 0) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

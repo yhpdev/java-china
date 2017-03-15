@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html class=no-js>
 <head>
-<meta charset=utf-8>
-<title>Java China - ${title}</title>
-<meta name=description content="">
-<meta name=viewport content="width=device-width">
-<link rel="shortcut icon" href="${base}/assets/favicon.ico"/>
-<link type="text/css" rel="stylesheet" href="${cdn}/assets/font-awesome-4.6.1/css/font-awesome.min.css?ver=${version}" />
-<link type="text/css" rel="stylesheet" href="${cdn}/assets/lib/sweet-alert/sweetalert.min.css?ver=${version}" />
-<link type="text/css" rel=stylesheet href="${base}/assets/styles/admin.css" />
-<script type="text/javascript" src="${cdn}/assets/scripts/jquery-2.2.0.min.js?ver=${version}"></script>
+	<meta charset=utf-8>
+	<title>Java China - ${title}</title>
+	<meta name=description content="">
+	<meta name=viewport content="width=device-width">
+	<link rel="shortcut icon" href="/assets/favicon.ico"/>
+	<link type="text/css" rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+	<link href="//cdn.bootcss.com/limonte-sweetalert2/6.4.1/sweetalert2.min.css" rel="stylesheet">
+	<link type="text/css" rel="stylesheet" href="//cdn.bootcss.com/ladda-bootstrap/0.9.4/ladda-themeless.min.css" />
+	<link type="text/css" rel="stylesheet" href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" />
+	<link type="text/css" rel=stylesheet href="/assets/styles/admin.css" />
+	<script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+</head>
 <body>
 <div class="app layout-fixed-header">
 	<div class="sidebar-panel offscreen-left">
 		<div class=brand>
 			<div class=brand-logo>
-				<img src="${base}/assets/images/logo1.png" height=15 alt="">
+				<img src="/assets/images/logo1.png" height=15 alt="">
 			</div>
 			<a href=javascript:;
 				class="toggle-sidebar hidden-xs hamburger-icon v3"
@@ -56,7 +59,7 @@
 			<ul class="nav navbar-nav navbar-right hidden-xs">
 				<li>
 					<a href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<img src="${login_user.avatar}"
+						<img src="${cdn_url}/${login_user.avatar}"
 							class="header-avatar img-circle ml10" alt="${login_user.user_name}" title="${login_user.user_name}">
 							<span class=pull-left>管理员：${login_user.user_name}</span>
 					</a>

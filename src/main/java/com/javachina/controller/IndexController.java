@@ -3,10 +3,7 @@ package com.javachina.controller;
 import com.blade.ioc.annotation.Inject;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
-import com.blade.kit.DateKit;
-import com.blade.kit.FileKit;
-import com.blade.kit.PatternKit;
-import com.blade.kit.StringKit;
+import com.blade.kit.*;
 import com.blade.kit.base.MapCache;
 import com.blade.kit.json.JSONObject;
 import com.blade.mvc.annotation.Controller;
@@ -212,49 +209,6 @@ public class IndexController extends BaseController {
         request.attribute("node", nodeMap);
 
         return this.getView("node_detail");
-    }
-
-
-    /**
-     * 上传头像
-     */
-    @Route(value = "/uploadimg", method = HttpMethod.POST)
-    public void uploadimg(Request request, Response response) {
-        LoginUser user = SessionKit.getLoginUser();
-        if (null == user) {
-            return;
-        }
-        FileItem[] fileItems = request.files();
-        if (null != fileItems && fileItems.length > 0) {
-
-            FileItem fileItem = fileItems[0];
-            String suffix = FileKit.getExtension(fileItem.fileName());
-            if (StringKit.isNotBlank(suffix)) {
-                suffix = "." + suffix;
-            }
-            if (!PatternKit.isImage(suffix)) {
-                return;
-            }
-
-            String saveName = user.getUid() + "/" + DateKit.dateFormat(new Date(), "yyyyMMddHHmmssSSS") + "_" + StringKit.getRandomChar(10) + suffix;
-            File file = new File(Constant.UPLOAD_DIR + File.separator + saveName);
-
-            try {
-
-                Utils.copyFileUsingFileChannels(fileItem.file(), file);
-
-                String filePath = Constant.UPLOAD_DIR + "/" + saveName;
-
-                JSONObject res = new JSONObject();
-                res.put("status", 200);
-                res.put("savekey", filePath);
-                res.put("savepath", filePath);
-                res.put("url", Constant.SITE_URL + "/" + filePath);
-                response.json(res.toString());
-            } catch (Exception e) {
-                LOGGER.error("上传文件失败", e);
-            }
-        }
     }
 
     /**

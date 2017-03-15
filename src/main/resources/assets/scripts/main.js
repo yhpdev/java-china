@@ -1,4 +1,6 @@
 
+var jc = new $.jc();
+
 function go_signin(){
 	swal({
 		title:"提示信息", 
@@ -41,24 +43,6 @@ function openWindow(url,name,iWidth,iHeight) {
     var iLeft = (window.screen.availWidth-10-iWidth)/2;            
     window.open(url,name,'height='+iHeight+',,innerHeight='+iHeight+',width='+iWidth+',innerWidth='+iWidth+',top='+iTop+',left='+iLeft+',status=no,toolbar=no,menubar=no,location=no,resizable=no,scrollbars=0,titlebar=no');  
 }  
-
-function alertError(msg){
-	swal({
-		title:"提示信息", 
-		text: msg, 
-		type:"error",
-		timer: 3000
-	});
-}
-
-function alertOk(msg){
-	swal({
-		title:"提示信息", 
-		text: msg, 
-		type:"success",
-		timer: 3000
-	});
-}
 
 function dispatch() {
     var q = document.getElementById("q");
@@ -412,18 +396,23 @@ var user = {};
 user.update_avatar = function(){
 	var avatar = $("#avatar_form #user_avatar").val();
 	if(avatar && avatar != ''){
-		$.post(BASE+'/settings', {type:'avatar', avatar : avatar}, function(response){
-			if(response){
-				if(response.status == 200){
-					alertOk("头像更换成功!");	
-				} else if(response.status == 401){
-					go_signin();
-				} else{
-					alertError(response.msg);
+		jc.post({
+			url : BASE+'/settings',
+			data: {type:'avatar', avatar : avatar},
+			success: function (result) {
+				if(result && result.success){
+                    jc.alertOkAndReload('头像更换成功');
+				} else {
+					if(result.code == 401){
+                        go_signin();
+					} else {
+						jc.alertError(result.msg || '头像修改失败');
+					}
 				}
-			}
+            }
 		});
 	}
+	return false;
 };
 
 /**

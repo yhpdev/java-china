@@ -4,17 +4,15 @@ import com.blade.Blade;
 import com.blade.ioc.annotation.Inject;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
-import com.blade.kit.DateKit;
-import com.blade.kit.EncrypKit;
-import com.blade.kit.StringKit;
-import com.blade.mvc.annotation.Controller;
-import com.blade.mvc.annotation.PathParam;
-import com.blade.mvc.annotation.QueryParam;
-import com.blade.mvc.annotation.Route;
+import com.blade.kit.*;
+import com.blade.kit.json.JSONObject;
+import com.blade.mvc.annotation.*;
 import com.blade.mvc.http.HttpMethod;
 import com.blade.mvc.http.Request;
 import com.blade.mvc.http.Response;
+import com.blade.mvc.multipart.FileItem;
 import com.blade.mvc.view.ModelAndView;
+import com.blade.mvc.view.RestResponse;
 import com.blade.patchca.DefaultPatchca;
 import com.blade.patchca.Patchca;
 import com.javachina.Actions;
@@ -29,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +38,10 @@ import java.util.Map;
 public class MemberController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MemberController.class);
+
+    public static final String CLASSPATH = MemberController.class.getClassLoader().getResource("").getPath();
+
+    public static final String upDir = CLASSPATH + "upload/";
 
     @Inject
     private SettingsService settingsService;
@@ -319,20 +322,20 @@ public class MemberController extends BaseController {
     }
 
     /**
-     * 个人设置
+     * 保存个人设置
      */
     @Route(value = "settings", method = HttpMethod.POST)
-    public void settings(Request request, Response response) {
+    @JSON
+    public RestResponse settings(Request request) {
 
         LoginUser loginUser = SessionKit.getLoginUser();
         if (null == loginUser) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
         String type = request.query("type");
         if (StringKit.isBlank(type)) {
-            return;
+            return RestResponse.fail("类型不能为空");
         }
 
         String avatar = request.query("avatar");
@@ -340,13 +343,12 @@ public class MemberController extends BaseController {
         // 修改头像
         if (type.equals("avatar") && StringKit.isNotBlank(avatar)) {
             try {
-                String avatar_path = Blade.$().webRoot() + File.separator + avatar;
-                userService.updateAvatar(loginUser.getUid(), avatar_path);
-
-                LoginUser loginUserTemp = userService.getLoginUser(null, loginUser.getUid());
-                SessionKit.setLoginUser(request.session(), loginUserTemp);
-
-                this.success(response, "");
+                User temp = new User();
+                temp.setUid(loginUser.getUid());
+                temp.setAvatar(avatar);
+                userService.update(temp);
+                loginUser.setAvatar(avatar);
+                return RestResponse.ok();
             } catch (Exception e) {
                 String msg = "头像更换失败";
                 if (e instanceof TipException) {
@@ -354,9 +356,8 @@ public class MemberController extends BaseController {
                 } else {
                     LOGGER.error(msg, e);
                 }
-                this.error(response, msg);
+                return RestResponse.fail(msg);
             }
-            return;
         }
 
         // 修改基本信息
@@ -376,9 +377,9 @@ public class MemberController extends BaseController {
                 if (flag) {
                     LoginUser loginUserTemp = userService.getLoginUser(null, loginUser.getUid());
                     SessionKit.setLoginUser(request.session(), loginUserTemp);
-                    this.success(response, "");
+                    return RestResponse.ok();
                 } else {
-                    this.error(response, "修改失败");
+                    return RestResponse.fail();
                 }
             } catch (Exception e) {
                 String msg = "修改失败";
@@ -387,9 +388,8 @@ public class MemberController extends BaseController {
                 } else {
                     LOGGER.error(msg, e);
                 }
-                this.error(response, msg);
+                return RestResponse.fail(msg);
             }
-            return;
         }
 
         // 修改密码
@@ -402,13 +402,11 @@ public class MemberController extends BaseController {
             String newpwd = request.query("newpwd");
 
             if (StringKit.isBlank(curpwd) || StringKit.isBlank(newpwd)) {
-                this.error(response, "参数不能为空");
-                return;
+                return RestResponse.fail("参数不能为空");
             }
 
             if (!EncrypKit.md5(loginUser.getUser_name() + curpwd).equals(loginUser.getPass_word())) {
-                this.error(response, "旧密码输入错误");
-                return;
+                return RestResponse.fail("旧密码输入错误");
             }
 
             try {
@@ -419,7 +417,7 @@ public class MemberController extends BaseController {
                 SessionKit.setLoginUser(request.session(), loginUserTemp);
                 userlogService.save(loginUser.getUid(), Actions.UPDATE_PWD, new_pwd);
 
-                this.success(response, "");
+                return RestResponse.ok();
             } catch (Exception e) {
                 String msg = "密码修改失败";
                 if (e instanceof TipException) {
@@ -427,10 +425,58 @@ public class MemberController extends BaseController {
                 } else {
                     LOGGER.error(msg, e);
                 }
-                this.error(response, msg);
+                return RestResponse.fail(msg);
             }
         }
 
+        return RestResponse.ok();
+    }
+
+
+    /**
+     * 上传头像
+     */
+    @Route(value = "/uploadimg", method = HttpMethod.POST)
+    public void uploadimg(Request request, Response response) {
+        LoginUser user = SessionKit.getLoginUser();
+        if (null == user) {
+            return;
+        }
+        JSONObject res = new JSONObject();
+        FileItem fileItem = request.fileItem("avatar");
+        if (null != fileItem) {
+            String suffix = FileKit.getExtension(fileItem.fileName());
+            if (StringKit.isNotBlank(suffix)) {
+                suffix = "." + suffix;
+            }
+            if (!Utils.isImage(fileItem.file())) {
+                res.put("status", 500);
+                res.put("msg", "不是图片类型");
+                return;
+            }
+            if (fileItem.file().length() / 1000 > 512000) {
+                res.put("status", 500);
+                res.put("msg", "图片超过5M");
+                return;
+            }
+
+            String saveName = "avatar/" + user.getUid() + "/" + DateKit.dateFormat(new Date(), "yyyyMMddHHmmssSSS") + "_" + StringKit.getRandomChar(10) + suffix;
+
+            String filePath = upDir + saveName;
+            File file = new File(filePath);
+            try {
+                if(!FileKit.isDirectory(file.getParent())){
+                    new File(file.getParent()).mkdirs();
+                }
+                Tools.copyFileUsingFileChannels(fileItem.file(), file);
+                res.put("status", 200);
+                res.put("savepath", saveName);
+                res.put("url", Constant.SITE_URL + "/upload/" + saveName);
+                response.json(res.toString());
+            } catch (Exception e) {
+                LOGGER.error("上传文件失败", e);
+            }
+        }
     }
 
     /**
