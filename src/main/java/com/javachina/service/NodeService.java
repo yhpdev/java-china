@@ -9,26 +9,26 @@ import java.util.List;
 import java.util.Map;
 
 public interface NodeService {
-	
-	Node getNode(Integer nid);
-	
-	Node getNode(Take take);
-	
-	Map<String, Object> getNodeDetail(Node node, Integer nid);
-	
-	List<Node> getNodeList(Take take);
 
-	List<NodeTree> getTree();
+    Node getNode(Integer nid);
 
-	Paginator<Map<String, Object>> getPageList(Take take);
+    Node getNode(Take take);
 
-	void save(Node node);
+    Map<String, Object> getNodeDetail(Node node, Integer nid);
 
-	void delete(Integer nid);
+    List<Node> getNodeList(Take take);
 
-	void updateCount(Integer nid, String type, int count);
+    List<NodeTree> getTree();
 
-	void update(Node node);
+    Paginator<Map<String, Object>> getPageList(Take take);
+
+    void save(Node node);
+
+    void delete(Integer nid);
+
+    void updateCount(Integer nid, String type, int count);
+
+    void update(Node node);
 
     List<Node> getHotNodes(int page, int limit);
 }

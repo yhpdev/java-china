@@ -10,38 +10,39 @@ import java.io.Serializable;
 @Table(name = "t_love", pk = "id")
 public class Love implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
-	private Integer id;
-	
-	private Integer tid;
-	
-	private Integer uid;
-	
-	public Love(){}
+    private static final long serialVersionUID = 1L;
 
-	public Integer getId() {
-		return id;
-	}
+    private Integer id;
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    private Integer tid;
 
-	public Integer getTid() {
-		return tid;
-	}
+    private Integer uid;
 
-	public void setTid(Integer tid) {
-		this.tid = tid;
-	}
+    public Love() {
+    }
 
-	public Integer getUid() {
-		return uid;
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public void setUid(Integer uid) {
-		this.uid = uid;
-	}
-	
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getTid() {
+        return tid;
+    }
+
+    public void setTid(Integer tid) {
+        this.tid = tid;
+    }
+
+    public Integer getUid() {
+        return uid;
+    }
+
+    public void setUid(Integer uid) {
+        this.uid = uid;
+    }
+
 }

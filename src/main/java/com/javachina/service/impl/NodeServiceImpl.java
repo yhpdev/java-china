@@ -6,17 +6,13 @@ import com.blade.jdbc.ActiveRecord;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
 import com.blade.kit.DateKit;
-import com.blade.kit.FileKit;
 import com.blade.kit.StringKit;
-import com.blade.kit.Tools;
 import com.javachina.exception.TipException;
 import com.javachina.ext.Funcs;
-import com.javachina.kit.Utils;
 import com.javachina.model.Node;
 import com.javachina.model.NodeTree;
 import com.javachina.service.NodeService;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,192 +21,192 @@ import java.util.Map;
 @Service
 public class NodeServiceImpl implements NodeService {
 
-	@Inject
-	private ActiveRecord activeRecord;
+    @Inject
+    private ActiveRecord activeRecord;
 
-	@Override
-	public Node getNode(Integer nid) {
-		Node node = activeRecord.byId(Node.class, nid);
-		if(null != node && node.getIs_del() == 0){
-			return node;
-		}
-		return null;
-	}
-	
-	@Override
-	public Node getNode(Take take) {
-		return activeRecord.one(take);
-	}
+    @Override
+    public Node getNode(Integer nid) {
+        Node node = activeRecord.byId(Node.class, nid);
+        if (null != node && node.getIs_del() == 0) {
+            return node;
+        }
+        return null;
+    }
 
-	@Override
-	public List<Node> getNodeList(Take take) {
-		if(null != take){
-			if(null != take.getPageRow()){
-				Paginator<Node> nodePaginator = activeRecord.page(take);
-				return null != nodePaginator ? nodePaginator.getList() : null;
-			}
-			return activeRecord.list(take);
-		}
-		return null;
-	}
+    @Override
+    public Node getNode(Take take) {
+        return activeRecord.one(take);
+    }
 
-	@Override
-	public List<NodeTree> getTree() {
+    @Override
+    public List<Node> getNodeList(Take take) {
+        if (null != take) {
+            if (null != take.getPageRow()) {
+                Paginator<Node> nodePaginator = activeRecord.page(take);
+                return null != nodePaginator ? nodePaginator.getList() : null;
+            }
+            return activeRecord.list(take);
+        }
+        return null;
+    }
 
-		// 查找所有父节点
-		Take take = new Take(Node.class);
-		take.eq("is_del", 0).eq("pid", 0).orderby("topics desc");
+    @Override
+    public List<NodeTree> getTree() {
 
-		List<NodeTree> nodeTrees = new ArrayList<>();
+        // 查找所有父节点
+        Take take = new Take(Node.class);
+        take.eq("is_del", 0).eq("pid", 0).orderby("topics desc");
 
-		List<Node> parents = activeRecord.list(take);
-		if (parents != null) {
-			for(Node parent : parents){
-				NodeTree nodeTree = new NodeTree();
-				nodeTree.setNid(parent.getNid());
-				nodeTree.setPid(parent.getPid());
-				nodeTree.setTitle(parent.getTitle());
-				nodeTree.setSlug(parent.getSlug());
+        List<NodeTree> nodeTrees = new ArrayList<>();
 
-				Take temp = new Take(Node.class);
-				temp.and("is_del", 0).and("pid", parent.getNid()).orderby("topics desc");
+        List<Node> parents = activeRecord.list(take);
+        if (parents != null) {
+            for (Node parent : parents) {
+                NodeTree nodeTree = new NodeTree();
+                nodeTree.setNid(parent.getNid());
+                nodeTree.setPid(parent.getPid());
+                nodeTree.setTitle(parent.getTitle());
+                nodeTree.setSlug(parent.getSlug());
 
-				List<Node> items = activeRecord.list(temp);
-				nodeTree.setItems(items);
-				nodeTree.setChilds( null != items ? items.size() : 0);
-				nodeTrees.add(nodeTree);
-			}
-		}
-		return nodeTrees;
-	}
+                Take temp = new Take(Node.class);
+                temp.and("is_del", 0).and("pid", parent.getNid()).orderby("topics desc");
 
-	@Override
-	public Paginator<Map<String, Object>> getPageList(Take take) {
-		if(null != take){
-			Paginator<Node> nodePage = activeRecord.page(take);
-			return this.getNodePageMap(nodePage);
-		}
-		return null;
-	}
-	
-	private Paginator<Map<String, Object>> getNodePageMap(Paginator<Node> nodePage){
-		
-		long totalCount = nodePage.getTotal();
-		int page = nodePage.getPageNum();
-		int pageSize = nodePage.getLimit();
-		Paginator<Map<String, Object>> result = new Paginator<Map<String,Object>>(totalCount, page, pageSize);
-		
-		List<Node> nodes = nodePage.getList();
-		
-		List<Map<String, Object>> nodeMaps = new ArrayList<Map<String,Object>>();
-		if(null != nodes && nodes.size() > 0){
-			for(Node node : nodes){
-				Map<String, Object> map = this.getNodeDetail(node, null);
-				if(null != map && !map.isEmpty()){
-					nodeMaps.add(map);
-				}
-			}
-		}
-		
-		result.setList(nodeMaps);
-		
-		return result;
-	}
-	
-	@Override
-	public void save(Node node) {
-		if(null == node){
-			throw new TipException("节点信息为空");
-		}
-		try {
-			Integer time = DateKit.getCurrentUnixTime();
-			node.setCreate_time(time);
-			node.setUpdate_time(time);
-			activeRecord.insert(node);
-		} catch (Exception e) {
-			throw e;
-		}
-	}
-	
-	@Override
-	public void delete(Integer nid) {
-		if(null == nid){
-			throw new TipException("节点id为空");
-		}
-		try {
-			Node temp = new Node();
-			temp.setNid(nid);
-			temp.setIs_del(1);
-			activeRecord.update(temp);
-		} catch (Exception e){
-			throw e;
-		}
-	}
+                List<Node> items = activeRecord.list(temp);
+                nodeTree.setItems(items);
+                nodeTree.setChilds(null != items ? items.size() : 0);
+                nodeTrees.add(nodeTree);
+            }
+        }
+        return nodeTrees;
+    }
 
-	@Override
-	public Map<String, Object> getNodeDetail(Node node, Integer nid) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		if(null == node){
-			node = this.getNode(nid);
-		}
-		if(null != node){
-			map.put("nid", node.getNid());
-			map.put("node_name", node.getTitle());
-			map.put("node_slug", node.getSlug());
-			map.put("topics", node.getTopics());
-			map.put("pid", node.getPid());
-			
-			if(node.getPid() > 0){
-				Node parent = this.getNode(node.getPid());
-				if(null != parent){
-					map.put("parent_name", parent.getTitle());
-				}
-			}
-			
-			// 查询子节点数
-			Integer childs = getNodeCount(node.getNid());
-			map.put("childs", childs);
-			map.put("description", node.getDescription());
-			if(StringKit.isNotBlank(node.getPic())){
-				String pic = Funcs.avatar_url(node.getPic());
-				map.put("pic", pic);
-			}
-		}
-		return map;
-	}
-	
-	private Integer getNodeCount(Integer nid){
-		Node node = new Node();
-		node.setPid(nid);
-		node.setIs_del(0);
-		return activeRecord.count(node);
-	}
+    @Override
+    public Paginator<Map<String, Object>> getPageList(Take take) {
+        if (null != take) {
+            Paginator<Node> nodePage = activeRecord.page(take);
+            return this.getNodePageMap(nodePage);
+        }
+        return null;
+    }
 
-	@Override
-	public void updateCount(Integer nid, String type, int count) {
-		if(null == nid){
-			throw new TipException("节点id为空");
-		}
-		if(StringKit.isBlank(type)){
-			throw new TipException("节点类型为空");
-		}
-		try {
-			String sql = "update t_node set %s = (%s + "+count+") where nid = " + nid;
-			activeRecord.execute(String.format(sql, type, type));
-		} catch (Exception e) {
-			throw e;
-		}
-	}
+    private Paginator<Map<String, Object>> getNodePageMap(Paginator<Node> nodePage) {
 
-	@Override
-	public void update(Node node) {
-		try {
-			if(null == node){
-				throw new TipException("节点信息为空");
-			}
+        long totalCount = nodePage.getTotal();
+        int page = nodePage.getPageNum();
+        int pageSize = nodePage.getLimit();
+        Paginator<Map<String, Object>> result = new Paginator<Map<String, Object>>(totalCount, page, pageSize);
+
+        List<Node> nodes = nodePage.getList();
+
+        List<Map<String, Object>> nodeMaps = new ArrayList<Map<String, Object>>();
+        if (null != nodes && nodes.size() > 0) {
+            for (Node node : nodes) {
+                Map<String, Object> map = this.getNodeDetail(node, null);
+                if (null != map && !map.isEmpty()) {
+                    nodeMaps.add(map);
+                }
+            }
+        }
+
+        result.setList(nodeMaps);
+
+        return result;
+    }
+
+    @Override
+    public void save(Node node) {
+        if (null == node) {
+            throw new TipException("节点信息为空");
+        }
+        try {
+            Integer time = DateKit.getCurrentUnixTime();
+            node.setCreate_time(time);
+            node.setUpdate_time(time);
+            activeRecord.insert(node);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public void delete(Integer nid) {
+        if (null == nid) {
+            throw new TipException("节点id为空");
+        }
+        try {
+            Node temp = new Node();
+            temp.setNid(nid);
+            temp.setIs_del(1);
+            activeRecord.update(temp);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getNodeDetail(Node node, Integer nid) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        if (null == node) {
+            node = this.getNode(nid);
+        }
+        if (null != node) {
+            map.put("nid", node.getNid());
+            map.put("node_name", node.getTitle());
+            map.put("node_slug", node.getSlug());
+            map.put("topics", node.getTopics());
+            map.put("pid", node.getPid());
+
+            if (node.getPid() > 0) {
+                Node parent = this.getNode(node.getPid());
+                if (null != parent) {
+                    map.put("parent_name", parent.getTitle());
+                }
+            }
+
+            // 查询子节点数
+            Integer childs = getNodeCount(node.getNid());
+            map.put("childs", childs);
+            map.put("description", node.getDescription());
+            if (StringKit.isNotBlank(node.getPic())) {
+                String pic = Funcs.avatar_url(node.getPic());
+                map.put("pic", pic);
+            }
+        }
+        return map;
+    }
+
+    private Integer getNodeCount(Integer nid) {
+        Node node = new Node();
+        node.setPid(nid);
+        node.setIs_del(0);
+        return activeRecord.count(node);
+    }
+
+    @Override
+    public void updateCount(Integer nid, String type, int count) {
+        if (null == nid) {
+            throw new TipException("节点id为空");
+        }
+        if (StringKit.isBlank(type)) {
+            throw new TipException("节点类型为空");
+        }
+        try {
+            String sql = "update t_node set %s = (%s + " + count + ") where nid = " + nid;
+            activeRecord.execute(String.format(sql, type, type));
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public void update(Node node) {
+        try {
+            if (null == node) {
+                throw new TipException("节点信息为空");
+            }
 
 			/*String node_pic = node.getPic();
-			if(StringKit.isNotBlank(node_pic)){
+            if(StringKit.isNotBlank(node_pic)){
 				File file = new File(node_pic);
 				if(file.exists()){
 					String ext = FileKit.getExtension(file.getName());
@@ -226,29 +222,29 @@ public class NodeServiceImpl implements NodeService {
 					node.setPic(key);
 				}
 			}*/
-			activeRecord.update(node);
-		} catch (Exception e) {
-			throw e;
-		}
-	}
+            activeRecord.update(node);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 
-	@Override
-	public List<Node> getHotNodes(int page, int limit) {
-		if(page <= 0){
-			page = 1;
-		}
+    @Override
+    public List<Node> getHotNodes(int page, int limit) {
+        if (page <= 0) {
+            page = 1;
+        }
 
-		if(limit <= 0 || limit > 50){
-			limit = 10;
-		}
+        if (limit <= 0 || limit > 50) {
+            limit = 10;
+        }
 
-		Take np = new Take(Node.class);
-		np.eq("is_del", 0).notEq("pid", 0).page(page, limit, "topics desc");
+        Take np = new Take(Node.class);
+        np.eq("is_del", 0).notEq("pid", 0).page(page, limit, "topics desc");
 
-		Paginator<Node> nodePaginator = activeRecord.page(np);
-		if(null != nodePaginator){
-			return nodePaginator.getList();
-		}
-		return null;
-	}
+        Paginator<Node> nodePaginator = activeRecord.page(np);
+        if (null != nodePaginator) {
+            return nodePaginator.getList();
+        }
+        return null;
+    }
 }

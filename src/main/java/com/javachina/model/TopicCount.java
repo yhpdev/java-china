@@ -7,73 +7,73 @@ import java.io.Serializable;
 @Table(name = "t_topiccount", pk = "tid")
 public class TopicCount implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Integer tid;
-	private Integer views;
-	private Integer loves;
-	private Integer favorites;
-	private Integer sinks;
-	private Integer comments;
-	private Integer create_time;
-	
-	public TopicCount() {
-	}
+    private Integer tid;
+    private Integer views;
+    private Integer loves;
+    private Integer favorites;
+    private Integer sinks;
+    private Integer comments;
+    private Integer create_time;
 
-	public Integer getTid() {
-		return tid;
-	}
+    public TopicCount() {
+    }
 
-	public void setTid(Integer tid) {
-		this.tid = tid;
-	}
+    public Integer getTid() {
+        return tid;
+    }
 
-	public Integer getViews() {
-		return views;
-	}
+    public void setTid(Integer tid) {
+        this.tid = tid;
+    }
 
-	public void setViews(Integer views) {
-		this.views = views;
-	}
+    public Integer getViews() {
+        return views;
+    }
 
-	public Integer getLoves() {
-		return loves;
-	}
+    public void setViews(Integer views) {
+        this.views = views;
+    }
 
-	public void setLoves(Integer loves) {
-		this.loves = loves;
-	}
+    public Integer getLoves() {
+        return loves;
+    }
 
-	public Integer getFavorites() {
-		return favorites;
-	}
+    public void setLoves(Integer loves) {
+        this.loves = loves;
+    }
 
-	public void setFavorites(Integer favorites) {
-		this.favorites = favorites;
-	}
+    public Integer getFavorites() {
+        return favorites;
+    }
 
-	public Integer getComments() {
-		return comments;
-	}
+    public void setFavorites(Integer favorites) {
+        this.favorites = favorites;
+    }
 
-	public void setComments(Integer comments) {
-		this.comments = comments;
-	}
+    public Integer getComments() {
+        return comments;
+    }
 
-	public Integer getSinks() {
-		return sinks;
-	}
+    public void setComments(Integer comments) {
+        this.comments = comments;
+    }
 
-	public void setSinks(Integer sinks) {
-		this.sinks = sinks;
-	}
+    public Integer getSinks() {
+        return sinks;
+    }
 
-	public Integer getCreate_time() {
-		return create_time;
-	}
+    public void setSinks(Integer sinks) {
+        this.sinks = sinks;
+    }
 
-	public void setCreate_time(Integer create_time) {
-		this.create_time = create_time;
-	}
-	
+    public Integer getCreate_time() {
+        return create_time;
+    }
+
+    public void setCreate_time(Integer create_time) {
+        this.create_time = create_time;
+    }
+
 }

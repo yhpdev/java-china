@@ -10,25 +10,25 @@ import com.javachina.service.LinkService;
 @Service
 public class LinkServiceImpl implements LinkService {
 
-	@Inject
-	private ActiveRecord activeRecord;
-	
-	@Override
-	public boolean save(String title, String url) {
-		Link link = new Link();
-		link.setTitle(title);
-		link.setUrl(url);
-		link.setCreate_time(DateKit.getCurrentUnixTime());
-		activeRecord.insert(link);
-		return false;
-	}
-	
-	@Override
-	public boolean delete(Integer id) {
-		if(null != id){
-			return activeRecord.delete(Link.class, id) > 0;
-		}
-		return false;
-	}
-		
+    @Inject
+    private ActiveRecord activeRecord;
+
+    @Override
+    public boolean save(String title, String url) {
+        Link link = new Link();
+        link.setTitle(title);
+        link.setUrl(url);
+        link.setCreate_time(DateKit.getCurrentUnixTime());
+        activeRecord.insert(link);
+        return false;
+    }
+
+    @Override
+    public boolean delete(Integer id) {
+        if (null != id) {
+            return activeRecord.delete(Link.class, id) > 0;
+        }
+        return false;
+    }
+
 }

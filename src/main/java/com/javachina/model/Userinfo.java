@@ -10,98 +10,99 @@ import java.io.Serializable;
 @Table(name = "t_userinfo", pk = "uid")
 public class Userinfo implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
-	private Integer uid;
-	
-	private String nick_name;
-	
-	private String jobs;
-	
-	private String web_site;
-	
-	private String location;
-	
-	private String github;
-	
-	private String weibo;
-	
-	private String signature;
-	
-	private String instructions;
-	
-	public Userinfo(){}
-	
-	public Integer getUid() {
-		return uid;
-	}
+    private static final long serialVersionUID = 1L;
 
-	public void setUid(Integer uid) {
-		this.uid = uid;
-	}
-	
-	public String getNick_name() {
-		return nick_name;
-	}
+    private Integer uid;
 
-	public void setNick_name(String nick_name) {
-		this.nick_name = nick_name;
-	}
-	
-	public String getWeb_site() {
-		return web_site;
-	}
+    private String nick_name;
 
-	public void setWeb_site(String web_site) {
-		this.web_site = web_site;
-	}
-	
-	public String getGithub() {
-		return github;
-	}
+    private String jobs;
 
-	public void setGithub(String github) {
-		this.github = github;
-	}
-	
-	public String getSignature() {
-		return signature;
-	}
+    private String web_site;
 
-	public void setSignature(String signature) {
-		this.signature = signature;
-	}
-	
-	public String getInstructions() {
-		return instructions;
-	}
+    private String location;
 
-	public void setInstructions(String instructions) {
-		this.instructions = instructions;
-	}
+    private String github;
 
-	public String getJobs() {
-		return jobs;
-	}
+    private String weibo;
 
-	public void setJobs(String jobs) {
-		this.jobs = jobs;
-	}
+    private String signature;
 
-	public String getLocation() {
-		return location;
-	}
+    private String instructions;
 
-	public void setLocation(String location) {
-		this.location = location;
-	}
+    public Userinfo() {
+    }
 
-	public String getWeibo() {
-		return weibo;
-	}
+    public Integer getUid() {
+        return uid;
+    }
 
-	public void setWeibo(String weibo) {
-		this.weibo = weibo;
-	}
-	
+    public void setUid(Integer uid) {
+        this.uid = uid;
+    }
+
+    public String getNick_name() {
+        return nick_name;
+    }
+
+    public void setNick_name(String nick_name) {
+        this.nick_name = nick_name;
+    }
+
+    public String getWeb_site() {
+        return web_site;
+    }
+
+    public void setWeb_site(String web_site) {
+        this.web_site = web_site;
+    }
+
+    public String getGithub() {
+        return github;
+    }
+
+    public void setGithub(String github) {
+        this.github = github;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+
+    public String getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(String jobs) {
+        this.jobs = jobs;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getWeibo() {
+        return weibo;
+    }
+
+    public void setWeibo(String weibo) {
+        this.weibo = weibo;
+    }
+
 }

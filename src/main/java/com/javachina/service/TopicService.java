@@ -9,70 +9,70 @@ import java.util.List;
 import java.util.Map;
 
 public interface TopicService {
-	
-	Topic getTopic(Integer tid);
-	
-	Map<String, Object> getTopicMap(Topic topic, boolean isDetail);
-	
-	Paginator<Map<String, Object>> getPageList(Take queryParam);
 
-	Integer save(Topic topic);
+    Topic getTopic(Integer tid);
 
-	Integer update(Integer tid, Integer nid, String title, String content);
-	
-	boolean comment(Integer uid, Integer to_uid, Integer tid, String content, String ua);
-	
-	void delete(Integer tid);
-	
-	void refreshWeight();
+    Map<String, Object> getTopicMap(Topic topic, boolean isDetail);
 
-	void updateWeight(Integer tid);
+    Paginator<Map<String, Object>> getPageList(Take queryParam);
 
-	void updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time);
+    Integer save(Topic topic);
 
-	Integer getTopics(Integer uid);
+    Integer update(Integer tid, Integer nid, String title, String content);
 
-	Integer getLastCreateTime(Integer uid);
+    boolean comment(Integer uid, Integer to_uid, Integer tid, String content, String ua);
 
-	Integer getLastUpdateTime(Integer uid);
+    void delete(Integer tid);
 
-	void essence(Integer tid, Integer count);
+    void refreshWeight();
 
-	/**
-	 * 获取首页帖
-	 *
-	 * @param nid
-	 * @param page
-	 * @param limit
-	 * @return
-	 */
-	Paginator<HomeTopic> getHomeTopics(Integer nid, int page, int limit);
+    void updateWeight(Integer tid);
 
-	/**
-	 * 获取最新帖
-	 *
-	 * @param nid
-	 * @param page
-	 * @param limit
-	 * @return
-	 */
-	Paginator<HomeTopic> getRecentTopics(Integer nid, int page, int limit);
+    void updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time);
 
-	/**
-	 * 获取精华贴
-	 *
-	 * @param page
-	 * @param limit
-	 * @return
-	 */
-	Paginator<HomeTopic> getEssenceTopics(int page, int limit);
+    Integer getTopics(Integer uid);
 
-	/**
-	 * 获取热门贴
-	 *
-	 * @param page
-	 * @param limie
-	 * @return
-	 */
-	List<HomeTopic> getHotTopics(int page, int limie);
+    Integer getLastCreateTime(Integer uid);
+
+    Integer getLastUpdateTime(Integer uid);
+
+    void essence(Integer tid, Integer count);
+
+    /**
+     * 获取首页帖
+     *
+     * @param nid
+     * @param page
+     * @param limit
+     * @return
+     */
+    Paginator<HomeTopic> getHomeTopics(Integer nid, int page, int limit);
+
+    /**
+     * 获取最新帖
+     *
+     * @param nid
+     * @param page
+     * @param limit
+     * @return
+     */
+    Paginator<HomeTopic> getRecentTopics(Integer nid, int page, int limit);
+
+    /**
+     * 获取精华贴
+     *
+     * @param page
+     * @param limit
+     * @return
+     */
+    Paginator<HomeTopic> getEssenceTopics(int page, int limit);
+
+    /**
+     * 获取热门贴
+     *
+     * @param page
+     * @param limie
+     * @return
+     */
+    List<HomeTopic> getHotTopics(int page, int limie);
 }

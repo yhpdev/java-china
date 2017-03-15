@@ -12,21 +12,21 @@ import com.javachina.service.UserlogService;
 @Service
 public class UserlogServiceImpl implements UserlogService {
 
-	@Inject
-	private ActiveRecord activeRecord;
+    @Inject
+    private ActiveRecord activeRecord;
 
-	@Override
-	public void save(final Integer uid, final String action, final String content) {
-		final String ip = Utils.getIpAddr(WebContextHolder.me().request());
-		Utils.run( () -> {
-			Userlog userlog = new Userlog();
-			userlog.setUid(uid);
-			userlog.setAction(action);
-			userlog.setContent(content);
-			userlog.setIp_addr(ip);
-			userlog.setCreate_time(DateKit.getCurrentUnixTime());
-			activeRecord.insert(userlog);
-		} );
-	}
-	
+    @Override
+    public void save(final Integer uid, final String action, final String content) {
+        final String ip = Utils.getIpAddr(WebContextHolder.me().request());
+        Utils.run(() -> {
+            Userlog userlog = new Userlog();
+            userlog.setUid(uid);
+            userlog.setAction(action);
+            userlog.setContent(content);
+            userlog.setIp_addr(ip);
+            userlog.setCreate_time(DateKit.getCurrentUnixTime());
+            activeRecord.insert(userlog);
+        });
+    }
+
 }

@@ -11,48 +11,48 @@ import com.javachina.service.OpenIdService;
 @Service
 public class OpenIdServiceImpl implements OpenIdService {
 
-	@Inject
-	private ActiveRecord activeRecord;
+    @Inject
+    private ActiveRecord activeRecord;
 
-	@Override
-	public Openid getOpenid(String type, Integer open_id) {
-		if(null == open_id || StringKit.isBlank(type)){
-			return null;
-		}
-		Openid openid = new Openid();
-		openid.setOpen_id(open_id);
-		openid.setType(type);
+    @Override
+    public Openid getOpenid(String type, Integer open_id) {
+        if (null == open_id || StringKit.isBlank(type)) {
+            return null;
+        }
+        Openid openid = new Openid();
+        openid.setOpen_id(open_id);
+        openid.setType(type);
 
-		return activeRecord.one(openid);
-	}
+        return activeRecord.one(openid);
+    }
 
-	@Override
-	public boolean save(String type, Integer open_id, Integer uid) {
-		if(StringKit.isNotBlank(type) && null != open_id && null != uid){
-			try {
-				Openid openid = new Openid();
-				openid.setType(type);
-				openid.setOpen_id(open_id);
-				openid.setUid(uid);
-				openid.setCreate_time(DateKit.getCurrentUnixTime());
-				activeRecord.insert(openid);
-				return true;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
+    @Override
+    public boolean save(String type, Integer open_id, Integer uid) {
+        if (StringKit.isNotBlank(type) && null != open_id && null != uid) {
+            try {
+                Openid openid = new Openid();
+                openid.setType(type);
+                openid.setOpen_id(open_id);
+                openid.setUid(uid);
+                openid.setCreate_time(DateKit.getCurrentUnixTime());
+                activeRecord.insert(openid);
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
 
-	@Override
-	public boolean delete(String type, Integer open_id) {
-		if(null != open_id && StringKit.isNotBlank(type)){
-			Openid openid = new Openid();
-			openid.setOpen_id(open_id);
-			openid.setType(type);
-			return activeRecord.delete(openid) > 0;
-		}
-		return false;
-	}
+    @Override
+    public boolean delete(String type, Integer open_id) {
+        if (null != open_id && StringKit.isNotBlank(type)) {
+            Openid openid = new Openid();
+            openid.setOpen_id(open_id);
+            openid.setType(type);
+            return activeRecord.delete(openid) > 0;
+        }
+        return false;
+    }
 
 }
