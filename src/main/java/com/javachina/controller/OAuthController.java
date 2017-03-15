@@ -6,11 +6,13 @@ import com.blade.kit.http.HttpRequest;
 import com.blade.kit.json.JSONKit;
 import com.blade.kit.json.JSONObject;
 import com.blade.mvc.annotation.Controller;
+import com.blade.mvc.annotation.JSON;
 import com.blade.mvc.annotation.Route;
 import com.blade.mvc.http.HttpMethod;
 import com.blade.mvc.http.Request;
 import com.blade.mvc.http.Response;
 import com.blade.mvc.view.ModelAndView;
+import com.blade.mvc.view.RestResponse;
 import com.javachina.Constant;
 import com.javachina.Types;
 import com.javachina.kit.SessionKit;
@@ -59,9 +61,7 @@ public class OAuthController extends BaseController {
      */
     @Route(value = "/github/call")
     public ModelAndView githubCall(Request request, Response response) {
-
         String code = request.query("code");
-
         if (StringKit.isNotBlank(code)) {
             LOGGER.info("code = {}", code);
 
@@ -130,12 +130,12 @@ public class OAuthController extends BaseController {
      * 绑定github帐号
      */
     @Route(value = "/user/bind", method = HttpMethod.POST)
-    public void bindCheck(Request request, Response response) {
-
+    @JSON
+    public RestResponse bindCheck(Request request, Response response) {
         Map<String, String> githubInfo = request.session().attribute(Types.github.toString());
         if (null == githubInfo) {
             response.go("/");
-            return;
+            return null;
         }
 
         String type = request.query("type");
@@ -143,26 +143,22 @@ public class OAuthController extends BaseController {
         String pass_word = request.query("pass_word");
 
         if (StringKit.isBlank(type) || StringKit.isBlank(login_name) || StringKit.isBlank(pass_word)) {
-            return;
+            return RestResponse.fail("绑定失败");
         }
 
         if (type.equals("signin")) {
 
             boolean hasUser = userService.hasUser(login_name);
             if (!hasUser) {
-                response.text("no_user");
-                return;
+                return RestResponse.fail("不存在该用户");
             }
 
             User user = userService.signin(login_name, pass_word);
             if (null == user) {
-                response.text("pwd_error");
-                return;
+                return RestResponse.fail("密码错误");
             }
-
             if (user.getStatus() == 0) {
-                response.text("no_active");
-                return;
+                return RestResponse.fail("用户未激活");
             }
 
             Integer open_id = Integer.valueOf(githubInfo.get("open_id"));
@@ -170,21 +166,19 @@ public class OAuthController extends BaseController {
             if (flag) {
                 LoginUser loginUser = userService.getLoginUser(user, null);
                 SessionKit.setLoginUser(request.session(), loginUser);
-                response.text(this.SUCCESS);
+                return RestResponse.ok();
             }
-            return;
         }
 
         if (type.equals("signup")) {
             String email = request.query("email");
             if (StringKit.isBlank(email)) {
-                return;
+                return RestResponse.fail("邮箱不能为空");
             }
 
             boolean has = userService.hasUser(login_name);
             if (has) {
-                response.text("exist_login");
-                return;
+                return RestResponse.fail("用户名已经存在");
             }
 
             try {
@@ -194,15 +188,17 @@ public class OAuthController extends BaseController {
                     boolean saveFlag = openIdService.save(Types.github.toString(), open_id, user_.getUid());
                     if (saveFlag) {
                         request.session().removeAttribute(Types.github.toString());
-                        response.text(this.SUCCESS);
+                        return RestResponse.ok();
                     }
                 } else {
-                    response.text(this.FAILURE);
+                    return RestResponse.fail();
                 }
             } catch (Exception e) {
-                LOGGER.error("", e);
+                LOGGER.error("注册失败", e);
             }
         }
+
+        return RestResponse.ok();
     }
 
 }

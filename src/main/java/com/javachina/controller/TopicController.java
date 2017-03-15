@@ -6,13 +6,12 @@ import com.blade.jdbc.model.Paginator;
 import com.blade.kit.DateKit;
 import com.blade.kit.StringKit;
 import com.blade.kit.base.MapCache;
-import com.blade.mvc.annotation.Controller;
-import com.blade.mvc.annotation.PathParam;
-import com.blade.mvc.annotation.Route;
+import com.blade.mvc.annotation.*;
 import com.blade.mvc.http.HttpMethod;
 import com.blade.mvc.http.Request;
 import com.blade.mvc.http.Response;
 import com.blade.mvc.view.ModelAndView;
+import com.blade.mvc.view.RestResponse;
 import com.javachina.Actions;
 import com.javachina.Constant;
 import com.javachina.Types;
@@ -119,7 +118,8 @@ public class TopicController extends BaseController {
      * 编辑帖子操作
      */
     @Route(value = "/topic/edit", method = HttpMethod.POST)
-    public void edit_topic(Request request, Response response) {
+    @JSON
+    public RestResponse edit_topic(Request request, Response response) {
         Integer tid = request.queryAsInt("tid");
         String title = request.query("title");
         String content = request.query("content");
@@ -127,58 +127,48 @@ public class TopicController extends BaseController {
 
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
         if (null == tid) {
-            this.error(response, "不存在该帖子");
-            return;
+            return RestResponse.fail("不存在该帖子");
         }
 
         // 不存在该帖子
         Topic topic = topicService.getTopic(tid);
         if (null == topic) {
-            this.error(response, "不存在该帖子");
-            return;
+            return RestResponse.fail("不存在该帖子");
         }
 
         // 无权限操作
         if (!topic.getUid().equals(user.getUid())) {
-            this.error(response, "无权限操作该帖");
-            return;
+            return RestResponse.fail("无权限操作该帖");
         }
 
         // 超过300秒
         if ((DateKit.getCurrentUnixTime() - topic.getCreate_time()) > 300) {
-            this.error(response, "超过300秒禁止编辑");
-            return;
+            return RestResponse.fail("超过300秒禁止编辑");
         }
 
         if (StringKit.isBlank(title) || StringKit.isBlank(content) || null == nid) {
-            this.error(response, "部分内容未输入");
-            return;
+            return RestResponse.fail("部分内容未输入");
         }
 
         if (title.length() < 4 || title.length() > 50) {
-            this.error(response, "标题长度在4-50个字符哦");
-            return;
+            return RestResponse.fail("标题长度在4-50个字符哦");
         }
 
         if (content.length() < 5) {
-            this.error(response, "您真是一字值千金啊。");
-            return;
+            return RestResponse.fail("您真是一字值千金啊。");
         }
 
         if (content.length() > 10000) {
-            this.error(response, "内容太长了，试试少吐点口水");
-            return;
+            return RestResponse.fail("内容太长了，试试少吐点口水");
         }
 
         Integer last_time = topicService.getLastUpdateTime(user.getUid());
         if (null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10) {
-            this.error(response, "您操作频率太快，过一会儿操作吧！");
-            return;
+            return RestResponse.fail("您操作频率太快，过一会儿操作吧！");
         }
 
         try {
@@ -186,7 +176,7 @@ public class TopicController extends BaseController {
             topicService.update(tid, nid, title, content);
             userlogService.save(user.getUid(), Actions.UPDATE_TOPIC, content);
 
-            this.success(response, tid);
+            return RestResponse.ok(tid);
         } catch (Exception e) {
             String msg = "编辑帖子失败";
             if (e instanceof TipException) {
@@ -194,7 +184,7 @@ public class TopicController extends BaseController {
             } else {
                 LOGGER.error(msg, e);
             }
-            this.error(response, msg);
+            return RestResponse.fail(msg);
         }
     }
 
@@ -202,43 +192,32 @@ public class TopicController extends BaseController {
      * 发布帖子操作
      */
     @Route(value = "/topic/add", method = HttpMethod.POST)
-    public void add_topic(Request request, Response response) {
-
-        String title = request.query("title");
-        String content = request.query("content");
-        Integer nid = request.queryAsInt("nid");
-
+    @JSON
+    public RestResponse add_topic(@QueryParam String title, @QueryParam String content, @QueryParam Integer nid) {
         LoginUser user = SessionKit.getLoginUser();
-
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
         if (StringKit.isBlank(title) || StringKit.isBlank(content) || null == nid) {
-            this.error(response, "部分内容未输入");
-            return;
+            return RestResponse.fail("部分内容未输入");
         }
 
         if (title.length() < 4 || title.length() > 50) {
-            this.error(response, "标题长度在4-50个字符哦");
-            return;
+            return RestResponse.fail("标题长度在4-50个字符哦");
         }
 
         if (content.length() < 5) {
-            this.error(response, "您真是一字值千金啊。");
-            return;
+            return RestResponse.fail("您真是一字值千金啊。");
         }
 
         if (content.length() > 10000) {
-            this.error(response, "内容太长了，试试少吐点口水");
-            return;
+            return RestResponse.fail("内容太长了，试试少吐点口水");
         }
 
         Integer last_time = topicService.getLastCreateTime(user.getUid());
         if (null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10) {
-            this.error(response, "您操作频率太快，过一会儿操作吧！");
-            return;
+            return RestResponse.fail("您操作频率太快，过一会儿操作吧！");
         }
 
         // 发布帖子
@@ -253,11 +232,10 @@ public class TopicController extends BaseController {
             if (null != tid) {
                 Constant.SYS_INFO = settingsService.getSystemInfo();
                 Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
-
                 userlogService.save(user.getUid(), Actions.ADD_TOPIC, content);
-                this.success(response, tid);
+                return RestResponse.ok();
             } else {
-                this.error(response, "帖子发布失败");
+                return RestResponse.fail();
             }
         } catch (Exception e) {
             String msg = "发布帖子失败";
@@ -266,7 +244,7 @@ public class TopicController extends BaseController {
             } else {
                 LOGGER.error(msg, e);
             }
-            this.error(response, msg);
+            return RestResponse.fail(msg);
         }
     }
 
@@ -345,42 +323,37 @@ public class TopicController extends BaseController {
      * 评论帖子操作
      */
     @Route(value = "/comment/add", method = HttpMethod.POST)
-    public void add_comment(Request request, Response response) {
+    @JSON
+    public RestResponse add_comment(Request request, Response response,
+                                    @QueryParam String content, @QueryParam Integer tid) {
 
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
         Integer uid = user.getUid();
-        String content = request.query("content");
-        Integer tid = request.queryAsInt("tid");
         Topic topic = topicService.getTopic(tid);
         if (null == topic) {
             response.go("/");
-            return;
+            return null;
         }
 
         if (null == tid || StringKit.isBlank(content)) {
-            this.error(response, "骚年，有些东西木有填哎！");
-            return;
+            return RestResponse.fail("骚年，有些东西木有填哎！");
         }
 
         if (content.length() > 5000) {
-            this.error(response, "内容太长了，试试少吐点口水。");
-            return;
+            return RestResponse.fail("内容太长了，试试少吐点口水。");
         }
 
         Integer last_time = topicService.getLastUpdateTime(user.getUid());
         if (null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10) {
-            this.error(response, "您操作频率太快，过一会儿操作吧！");
-            return;
+            return RestResponse.fail("您操作频率太快，过一会儿操作吧！");
         }
 
         // 评论帖子
         try {
-
             String ua = request.userAgent();
 
             boolean flag = topicService.comment(uid, topic.getUid(), tid, content, ua);
@@ -389,10 +362,9 @@ public class TopicController extends BaseController {
                 Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
 
                 userlogService.save(user.getUid(), Actions.ADD_COMMENT, content);
-
-                this.success(response, "");
+                return RestResponse.ok();
             } else {
-                this.error(response, "帖子评论失败");
+                return RestResponse.fail();
             }
         } catch (Exception e) {
             String msg = "评论帖子失败";
@@ -401,7 +373,7 @@ public class TopicController extends BaseController {
             } else {
                 LOGGER.error(msg, e);
             }
-            this.error(response, msg);
+            return RestResponse.fail(msg);
         }
     }
 
@@ -409,28 +381,26 @@ public class TopicController extends BaseController {
      * 加精和取消加精
      */
     @Route(value = "/essence", method = HttpMethod.POST)
-    public void essence(Request request, Response response) {
+    @JSON
+    public RestResponse essence(Request request) {
 
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
         if (user.getRole_id() > 3) {
-            this.error(response, "您无权限操作");
-            return;
+            return RestResponse.fail("您无权限操作");
         }
 
-        Integer tid = request.queryAsInt("tid");
+        Integer tid = request.queryInt("tid");
         if (null == tid || tid == 0) {
-            return;
+            return RestResponse.fail();
         }
 
         Topic topic = topicService.getTopic(tid);
         if (null == topic) {
-            this.error(response, "不存在该帖子");
-            return;
+            return RestResponse.fail("不存在该帖子");
         }
 
         try {
@@ -438,7 +408,7 @@ public class TopicController extends BaseController {
             topicService.essence(tid, count);
             userlogService.save(user.getUid(), Actions.ESSENCE, tid + ":" + count);
 
-            this.success(response, tid);
+            return RestResponse.ok(tid);
         } catch (Exception e) {
             String msg = "设置失败";
             if (e instanceof TipException) {
@@ -446,7 +416,7 @@ public class TopicController extends BaseController {
             } else {
                 LOGGER.error(msg, e);
             }
-            this.error(response, msg);
+            return RestResponse.fail(msg);
         }
     }
 
@@ -454,17 +424,16 @@ public class TopicController extends BaseController {
      * 帖子下沉
      */
     @Route(value = "/sink", method = HttpMethod.POST)
-    public void sink(Request request, Response response) {
-
+    @JSON
+    public RestResponse sink(Request request) {
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
-        Integer tid = request.queryAsInt("tid");
+        Integer tid = request.queryInt("tid");
         if (null == tid || tid == 0) {
-            return;
+            return RestResponse.fail();
         }
 
         try {
@@ -475,7 +444,7 @@ public class TopicController extends BaseController {
                 topicService.updateWeight(tid);
                 userlogService.save(user.getUid(), Actions.SINK, tid + "");
             }
-            this.success(response, tid);
+            return RestResponse.ok(tid);
         } catch (Exception e) {
             String msg = "设置失败";
             if (e instanceof TipException) {
@@ -483,7 +452,7 @@ public class TopicController extends BaseController {
             } else {
                 LOGGER.error(msg, e);
             }
-            this.error(response, msg);
+            return RestResponse.fail(msg);
         }
     }
 
@@ -491,22 +460,21 @@ public class TopicController extends BaseController {
      * 删除帖子
      */
     @Route(value = "/delete", method = HttpMethod.POST)
-    public void delete(Request request, Response response) {
-
+    @JSON
+    public RestResponse delete(Request request, Response response) {
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
-        Integer tid = request.queryAsInt("tid");
+        Integer tid = request.queryInt("tid");
         if (null == tid || tid == 0 || user.getRole_id() > 2) {
-            return;
+            return RestResponse.fail();
         }
 
         try {
             topicService.delete(tid);
-            this.success(response, tid);
+            return RestResponse.ok(tid);
         } catch (Exception e) {
             String msg = "删除帖子失败";
             if (e instanceof TipException) {
@@ -514,7 +482,7 @@ public class TopicController extends BaseController {
             } else {
                 LOGGER.error(msg, e);
             }
-            this.error(response, msg);
+            return RestResponse.fail(msg);
         }
     }
 

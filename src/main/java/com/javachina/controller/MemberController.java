@@ -1,6 +1,5 @@
 package com.javachina.controller;
 
-import com.blade.Blade;
 import com.blade.ioc.annotation.Inject;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
@@ -97,9 +96,7 @@ public class MemberController extends BaseController {
             response.go("/signin");
             return null;
         }
-
-        Integer page = request.queryAsInt("p");
-        page = null == page ? 1 : page;
+        Integer page = request.queryInt("p", 1);
 
         Paginator<Map<String, Object>> noticePage = noticeService.getNoticePage(user.getUid(), page, 10);
         request.attribute("noticePage", noticePage);
@@ -180,7 +177,7 @@ public class MemberController extends BaseController {
     /**
      * 用户主页
      */
-    @Route(value = "/member/:username")
+    @Route(value = "/member/:username", method = HttpMethod.GET)
     public ModelAndView member(@PathParam("username") String username,
                                Request request, Response response) {
 
@@ -283,26 +280,25 @@ public class MemberController extends BaseController {
      * 关注／收藏／点赞／下沉帖
      */
     @Route(value = "/favorite", method = HttpMethod.POST)
-    public void favorite(Request request, Response response) {
+    @JSON
+    public RestResponse favorite(Request request, Response response) {
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            this.nosignin(response);
-            return;
+            return RestResponse.fail(401);
         }
 
         // topic：帖子，node：节点，love：喜欢，following：关注
         String type = request.query("type");
-        Integer event_id = request.queryAsInt("event_id");
+        Integer event_id = request.queryInt("event_id");
 
         if (StringKit.isBlank(type) || null == event_id || event_id == 0) {
-            return;
+            return RestResponse.fail();
         }
 
-        Integer count = favoriteService.update(type, user.getUid(), event_id);
+        favoriteService.update(type, user.getUid(), event_id);
         LoginUser loginUser = userService.getLoginUser(null, user.getUid());
         SessionKit.setLoginUser(request.session(), loginUser);
-
-        this.success(response, count);
+        return RestResponse.ok();
     }
 
     /**
@@ -465,7 +461,7 @@ public class MemberController extends BaseController {
             String filePath = upDir + saveName;
             File file = new File(filePath);
             try {
-                if(!FileKit.isDirectory(file.getParent())){
+                if (!FileKit.isDirectory(file.getParent())) {
                     new File(file.getParent()).mkdirs();
                 }
                 Tools.copyFileUsingFileChannels(fileItem.file(), file);
@@ -483,14 +479,14 @@ public class MemberController extends BaseController {
      * 显示markdown预览
      */
     @Route(value = "markdown", method = HttpMethod.POST)
-    public void getMarkdown(Request request, Response response) {
+    @JSON
+    public RestResponse getMarkdown(Request request) {
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            response.text("");
-            return;
+            return RestResponse.fail(401);
         }
         String content = request.query("content");
-        response.text(Utils.markdown2html(content));
+        return RestResponse.ok(Utils.markdown2html(content));
     }
 
 }

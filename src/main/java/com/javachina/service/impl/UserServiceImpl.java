@@ -201,8 +201,7 @@ public class UserServiceImpl implements UserService {
             loginUser.setPass_word(user.getPass_word());
             loginUser.setStatus(user.getStatus());
             loginUser.setRole_id(user.getRole_id());
-            String avatar = Funcs.avatar_url(user.getAvatar());
-            loginUser.setAvatar(avatar);
+            loginUser.setAvatar(user.getAvatar());
 
             Integer comments = commentService.getComments(user.getUid());
             loginUser.setComments(comments);

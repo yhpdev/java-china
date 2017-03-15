@@ -3,23 +3,7 @@ $('a[data-toggle=layout-small-menu]').on('click', function(e){
 	e.preventDefault(), e.stopPropagation(), $('.layout-fixed-header').toggleClass("layout-small-menu");
 });
 
-function alertError(msg){
-	swal({
-		title:"提示信息", 
-		text: msg, 
-		type:"error",
-		timer: 3000
-	});
-}
-
-function alertOk(msg){
-	swal({
-		title:"提示信息", 
-		text: msg, 
-		type:"success",
-		timer: 3000
-	});
-}
+var jc = new $.jc();
 
 function len(o){  
    var n, count = 0;  
@@ -67,7 +51,7 @@ $('.user-table .disable').on('click', function(){
 			if(response.status == 200){
 				window.location.reload();	
 			} else{
-				alertError(response.msg);
+				jc.alertError(response.msg);
 			}
 		}
 	});
@@ -81,7 +65,7 @@ $('.user-table .removeAdmin').on('click', function(){
 			if(response.status == 200){
 				window.location.reload();	
 			} else{
-				alertError(response.msg);
+                jc.alertError(response.msg);
 			}
 		}
 	});
@@ -95,7 +79,7 @@ $('.user-table .setAdmin').on('click', function(){
 			if(response.status == 200){
 				window.location.reload();	
 			} else{
-				alertError(response.msg);
+                jc.alertError(response.msg);
 			}
 		}
 	});
@@ -109,7 +93,7 @@ $('.user-table .recoveryAccount').on('click', function(){
 			if(response.status == 200){
 				window.location.reload();	
 			} else{
-				alertError(response.msg);
+                jc.alertError(response.msg);
 			}
 		}
 	});
@@ -133,9 +117,9 @@ function save_settings(){
 			setting_data = {};
 			if(response){
 				if(response.status == 200){
-					alertOk("保存成功！");
+					jc.alertOk("保存成功！");
 				 } else {
-					alertError(response.msg);
+                    jc.alertError(response.msg);
 				 }
 			}
 		});
@@ -150,9 +134,9 @@ function update_node(){
 		setting_data = {};
 		if(response){
 			 if(response.status == 200){
-				 alertOk("修改成功！");
+				 jc.alertOk("修改成功！");
 			 } else {
-				 alertError(response.msg);
+                 jc.alertError(response.msg);
 			 }
 		}
 	});

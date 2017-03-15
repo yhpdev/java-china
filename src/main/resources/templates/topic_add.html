@@ -11,11 +11,11 @@
                     <h3 class="panel-title">发布新帖子</h3>
                 </div>
                 <div class="panel-body">
-                	<form id="topic-add" role="form" method="post">
+                	<form id="topic-add" role="form" onsubmit="return publish_topic();">
                         <div class="form-group">
                             <label for="title">标题</label>
                             <input type="text" class="form-control" id="title" name="title" placeholder="请输入帖子标题" 
-                            	required="required" />
+                            	required="required" aria-required="true" />
                         </div>
                         <div class="form-group">
                             <label for="nid">节点</label>
@@ -45,7 +45,7 @@
                         </div>
                         <div>
                         	<button type="button" class="btn btn-default btn-small preview">预览帖子</button>
-							<button type="submit" class="btn btn-primary btn-small ladda-button" data-style="zoom-out">
+							<button type="submit" class="btn btn-primary btn-small" data-style="zoom-out">
 								<span class="ladda-label">发布帖子</span>
 							</button>                        	
                         </div>
