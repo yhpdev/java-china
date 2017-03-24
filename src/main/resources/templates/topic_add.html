@@ -57,8 +57,37 @@
         #include("./common/sidebar.html")
     </div>
 </div>
-<script>var comment_members = [];</script>
-#include("./common/emoji.html")
 #include("./common/footer.html")
+<script type="text/javascript">
+    function publish_topic() {
+        var title = $('#topic-add #title').val();
+        var nid = $('#topic-add #nid').val();
+        if(title == ''){
+            jc.alertWarn('请输入帖子标题');
+            return false;
+        }
+        if(nid == ''){
+            jc.alertWarn('请选择一个节点');
+            return false;
+        }
+        jc.post({
+            url : BASE+'/topic/add',
+            data: $('#topic-add').serialize(),
+            success: function (result) {
+                if(result && result.success){
+                    var tid = result.payload;
+                    window.location.href = '/topic/' + tid;
+                } else {
+                    if(result.code == 401){
+                        go_signin();
+                    } else {
+                        jc.alertError(result.msg || '帖子发布失败');
+                    }
+                }
+            }
+        });
+        return false;
+    }
+</script>
 </body>
 </html>

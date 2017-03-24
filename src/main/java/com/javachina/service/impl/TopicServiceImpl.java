@@ -17,6 +17,7 @@ import com.javachina.ext.PageHelper;
 import com.javachina.kit.Utils;
 import com.javachina.model.*;
 import com.javachina.service.*;
+import com.vdurmont.emoji.EmojiParser;
 import org.sql2o.Sql2o;
 
 import java.util.*;
@@ -85,7 +86,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public Integer save(Topic topic) {
+    public Integer publish(Topic topic) {
         if (null == topic) {
             throw new TipException("帖子信息为空");
         }
@@ -209,6 +210,22 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public boolean comment(Integer uid, Integer to_uid, Integer tid, String content, String ua) {
         try {
+
+            if (null == tid || StringKit.isBlank(content)) {
+                throw new TipException("骚年，有些东西木有填哎！");
+            }
+
+            if (content.length() > 5000) {
+                throw new TipException("内容太长了，试试少吐点口水。");
+            }
+
+            Integer last_time = this.getLastUpdateTime(uid);
+            if (null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10) {
+                throw new TipException("您操作频率太快，过一会儿操作吧！");
+            }
+
+            content = EmojiParser.parseToAliases(content);
+
             Integer cid = commentService.save(uid, to_uid, tid, content, ua);
             if (null != cid) {
 
@@ -218,7 +235,6 @@ public class TopicServiceImpl implements TopicService {
                 // 通知
                 if (!uid.equals(to_uid)) {
                     noticeService.save(Types.comment.toString(), uid, to_uid, tid);
-
                     // 通知@的用户
                     Set<String> atUsers = Utils.getAtUsers(content);
                     if (CollectionKit.isNotEmpty(atUsers)) {
@@ -229,7 +245,6 @@ public class TopicServiceImpl implements TopicService {
                             }
                         }
                     }
-
                     // 更新总评论数
                     settingsService.updateCount(Types.comment_count.toString(), +1);
                 }

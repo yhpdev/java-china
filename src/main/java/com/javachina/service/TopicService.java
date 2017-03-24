@@ -10,32 +10,108 @@ import java.util.Map;
 
 public interface TopicService {
 
+    /**
+     * 根据帖子id获取帖子
+     *
+     * @param tid
+     * @return
+     */
     Topic getTopic(Integer tid);
 
     Map<String, Object> getTopicMap(Topic topic, boolean isDetail);
 
-    Paginator<Map<String, Object>> getPageList(Take queryParam);
+    /**
+     * 分页获取帖子
+     *
+     * @param take
+     * @return
+     */
+    Paginator<Map<String, Object>> getPageList(Take take);
 
-    Integer save(Topic topic);
+    /**
+     * 发布帖子病返回帖子id
+     *
+     * @param topic
+     * @return
+     */
+    Integer publish(Topic topic);
 
+    /**
+     * 更新帖子
+     *
+     * @param tid
+     * @param nid
+     * @param title
+     * @param content
+     * @return
+     */
     Integer update(Integer tid, Integer nid, String title, String content);
 
+    /**
+     * 评论帖子
+     *
+     * @param uid
+     * @param to_uid
+     * @param tid
+     * @param content
+     * @param ua
+     * @return
+     */
     boolean comment(Integer uid, Integer to_uid, Integer tid, String content, String ua);
 
     void delete(Integer tid);
 
     void refreshWeight();
 
+    /**
+     * 更新帖子权重
+     *
+     * @param tid
+     */
     void updateWeight(Integer tid);
 
+    /**
+     * 刷新帖子权重
+     *
+     * @param tid
+     * @param loves
+     * @param favorites
+     * @param comment
+     * @param sinks
+     * @param create_time
+     */
     void updateWeight(Integer tid, Integer loves, Integer favorites, Integer comment, Integer sinks, Integer create_time);
 
+    /**
+     * 获取用户发布的帖子数
+     *
+     * @param uid
+     * @return
+     */
     Integer getTopics(Integer uid);
 
+    /**
+     * 获取用户最后一次发布帖子时间
+     *
+     * @param uid
+     * @return
+     */
     Integer getLastCreateTime(Integer uid);
 
+    /**
+     * 获取用户最后一次更新帖子时间
+     *
+     * @param uid
+     * @return
+     */
     Integer getLastUpdateTime(Integer uid);
 
+    /**
+     * 设置精华帖
+     *
+     * @param tid
+     * @param count
+     */
     void essence(Integer tid, Integer count);
 
     /**

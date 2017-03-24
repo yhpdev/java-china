@@ -193,7 +193,10 @@ public class TopicController extends BaseController {
      */
     @Route(value = "/topic/add", method = HttpMethod.POST)
     @JSON
-    public RestResponse add_topic(@QueryParam String title, @QueryParam String content, @QueryParam Integer nid) {
+    public RestResponse publish(@QueryParam String title,
+                                @QueryParam String content,
+                                @QueryParam Integer nid) {
+
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
             return RestResponse.fail(401);
@@ -228,15 +231,11 @@ public class TopicController extends BaseController {
             topic.setTitle(title);
             topic.setContent(content);
             topic.setIs_top(0);
-            Integer tid = topicService.save(topic);
-            if (null != tid) {
-                Constant.SYS_INFO = settingsService.getSystemInfo();
-                Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
-                userlogService.save(user.getUid(), Actions.ADD_TOPIC, content);
-                return RestResponse.ok();
-            } else {
-                return RestResponse.fail();
-            }
+            Integer tid = topicService.publish(topic);
+            Constant.SYS_INFO = settingsService.getSystemInfo();
+            Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
+            userlogService.save(user.getUid(), Actions.ADD_TOPIC, content);
+            return RestResponse.ok(tid);
         } catch (Exception e) {
             String msg = "发布帖子失败";
             if (e instanceof TipException) {
@@ -296,7 +295,7 @@ public class TopicController extends BaseController {
 
     private void putDetail(Request request, Integer uid, Topic topic) {
 
-        Integer page = request.queryAsInt("p");
+        Integer page = request.queryInt("p");
         if (null == page || page < 1) {
             page = 1;
         }
@@ -324,8 +323,8 @@ public class TopicController extends BaseController {
      */
     @Route(value = "/comment/add", method = HttpMethod.POST)
     @JSON
-    public RestResponse add_comment(Request request, Response response,
-                                    @QueryParam String content, @QueryParam Integer tid) {
+    public RestResponse comment(Request request, Response response,
+                                @QueryParam String content, @QueryParam Integer tid) {
 
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
@@ -338,34 +337,13 @@ public class TopicController extends BaseController {
             response.go("/");
             return null;
         }
-
-        if (null == tid || StringKit.isBlank(content)) {
-            return RestResponse.fail("骚年，有些东西木有填哎！");
-        }
-
-        if (content.length() > 5000) {
-            return RestResponse.fail("内容太长了，试试少吐点口水。");
-        }
-
-        Integer last_time = topicService.getLastUpdateTime(user.getUid());
-        if (null != last_time && (DateKit.getCurrentUnixTime() - last_time) < 10) {
-            return RestResponse.fail("您操作频率太快，过一会儿操作吧！");
-        }
-
-        // 评论帖子
         try {
             String ua = request.userAgent();
-
-            boolean flag = topicService.comment(uid, topic.getUid(), tid, content, ua);
-            if (flag) {
-                Constant.SYS_INFO = settingsService.getSystemInfo();
-                Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
-
-                userlogService.save(user.getUid(), Actions.ADD_COMMENT, content);
-                return RestResponse.ok();
-            } else {
-                return RestResponse.fail();
-            }
+            topicService.comment(uid, topic.getUid(), tid, content, ua);
+            Constant.SYS_INFO = settingsService.getSystemInfo();
+            Constant.VIEW_CONTEXT.set("sys_info", Constant.SYS_INFO);
+            userlogService.save(user.getUid(), Actions.ADD_COMMENT, content);
+            return RestResponse.ok();
         } catch (Exception e) {
             String msg = "评论帖子失败";
             if (e instanceof TipException) {

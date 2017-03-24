@@ -284,37 +284,6 @@ $('.node-head .favorite').on('click', function(){
 });
 ////////////////////帖子操作:START//////////////////////
 
-function publish_topic() {
-    var title = $('#topic-add #title').val();
-    var nid = $('#topic-add #nid').val();
-    if(title == ''){
-        jc.alertWarn('请输入帖子标题');
-        return false;
-    }
-    if(nid == ''){
-        jc.alertWarn('请选择一个节点');
-        return false;
-    }
-
-    var formData = $('#topic-add').serialize();
-	jc.post({
-		url : BASE+'/topic/add',
-		data: formData,
-		success: function (result) {
-			if(result && result.success){
-				window.location.href = BASE + '/topic/' + response.data;
-			} else {
-				if(result.code == 401){
-					go_signin();
-				} else {
-					jc.alertError(result.msg || '帖子发布失败');
-				}
-			}
-		}
-	});
-    return false;
-}
-
 // 评论帖子
 $("#comment-form .ladda-button").on('click', function(e){
 	e.preventDefault();
