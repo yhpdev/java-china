@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Userinfo对象
  */
 @Table(name = "t_userinfo", pk = "uid")
-public class Userinfo implements Serializable {
+public class UserInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -30,7 +30,7 @@ public class Userinfo implements Serializable {
 
     private String instructions;
 
-    public Userinfo() {
+    public UserInfo() {
     }
 
     public Integer getUid() {

@@ -15,8 +15,9 @@ import com.javachina.ext.Funcs;
 import com.javachina.kit.MailKit;
 import com.javachina.model.LoginUser;
 import com.javachina.model.User;
-import com.javachina.model.Userinfo;
+import com.javachina.model.UserInfo;
 import com.javachina.service.*;
+import com.vdurmont.emoji.EmojiParser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -151,15 +152,19 @@ public class UserServiceImpl implements UserService {
     public Map<String, Object> getUserDetail(Integer uid) {
         Map<String, Object> map = new HashMap<String, Object>();
         if (null != uid) {
-
             User user = activeRecord.byId(User.class, uid);
-            Userinfo userinfo = activeRecord.byId(Userinfo.class, uid);
-
-            map = BeanKit.beanToMap(userinfo);
+            UserInfo userInfo = activeRecord.byId(UserInfo.class, uid);
+            map = BeanKit.beanToMap(userInfo);
             map.put("username", user.getLogin_name());
             map.put("uid", uid);
             map.put("email", user.getEmail());
             map.put("avatar", user.getAvatar());
+            if(StringKit.isNotBlank(userInfo.getInstructions())){
+                map.put("instructions", EmojiParser.parseToUnicode(userInfo.getInstructions()));
+            }
+            if(StringKit.isNotBlank(userInfo.getSignature())){
+                map.put("signature", EmojiParser.parseToUnicode(userInfo.getSignature()));
+            }
             map.put("create_time", user.getCreate_time());
             String avatar = Funcs.avatar_url(user.getAvatar());
             map.put("avatar", avatar);
@@ -226,10 +231,10 @@ public class UserServiceImpl implements UserService {
             Integer notices = noticeService.getNotices(user.getUid());
             loginUser.setNotices(notices);
 
-            Userinfo userinfo = userinfoService.getUserinfo(user.getUid());
-            if (null != userinfo) {
-                loginUser.setJobs(userinfo.getJobs());
-                loginUser.setNick_name(userinfo.getNick_name());
+            UserInfo userInfo = userinfoService.getUserinfo(user.getUid());
+            if (null != userInfo) {
+                loginUser.setJobs(userInfo.getJobs());
+                loginUser.setNick_name(userInfo.getNick_name());
             }
 
             Integer my_topics = favoriteService.favorites(Types.topic.toString(), user.getUid());

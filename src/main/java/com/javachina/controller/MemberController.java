@@ -4,7 +4,6 @@ import com.blade.ioc.annotation.Inject;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
 import com.blade.kit.*;
-import com.blade.kit.json.JSONObject;
 import com.blade.mvc.annotation.*;
 import com.blade.mvc.http.HttpMethod;
 import com.blade.mvc.http.Request;
@@ -26,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -306,7 +305,6 @@ public class MemberController extends BaseController {
      */
     @Route(value = "settings", method = HttpMethod.GET)
     public ModelAndView show_settings(Request request, Response response) {
-
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
             response.go("/");
@@ -335,7 +333,6 @@ public class MemberController extends BaseController {
         }
 
         String avatar = request.query("avatar");
-
         // 修改头像
         if (type.equals("avatar") && StringKit.isNotBlank(avatar)) {
             try {
@@ -358,7 +355,6 @@ public class MemberController extends BaseController {
 
         // 修改基本信息
         if (type.equals("info")) {
-            String nickName = request.query("nick_name");
             String jobs = request.query("jobs");
             String webSite = request.query("web_site");
             String github = request.query("github");
@@ -368,15 +364,22 @@ public class MemberController extends BaseController {
             String instructions = request.query("instructions");
 
             try {
-                boolean flag = userinfoService.update(loginUser.getUid(), nickName, jobs, webSite, github, weibo, location, signature, instructions);
 
-                if (flag) {
-                    LoginUser loginUserTemp = userService.getLoginUser(null, loginUser.getUid());
-                    SessionKit.setLoginUser(request.session(), loginUserTemp);
-                    return RestResponse.ok();
-                } else {
-                    return RestResponse.fail();
-                }
+                UserInfo userInfo = new UserInfo();
+                userInfo.setUid(loginUser.getUid());
+                userInfo.setJobs(jobs);
+                userInfo.setWeb_site(webSite);
+                userInfo.setGithub(github);
+                userInfo.setWeibo(weibo);
+                userInfo.setLocation(location);
+                userInfo.setSignature(signature);
+                userInfo.setInstructions(instructions);
+
+                userinfoService.update(userInfo);
+
+                LoginUser loginUserTemp = userService.getLoginUser(null, loginUser.getUid());
+                SessionKit.setLoginUser(request.session(), loginUserTemp);
+                return RestResponse.ok();
             } catch (Exception e) {
                 String msg = "修改失败";
                 if (e instanceof TipException) {
@@ -391,14 +394,17 @@ public class MemberController extends BaseController {
         // 修改密码
         if (type.equals("pwd")) {
 
-            Map<String, Object> profile = userService.getUserDetail(loginUser.getUid());
-            request.attribute("profile", profile);
-
             String curpwd = request.query("curpwd");
             String newpwd = request.query("newpwd");
-
-            if (StringKit.isBlank(curpwd) || StringKit.isBlank(newpwd)) {
-                return RestResponse.fail("参数不能为空");
+            String renewpwd = request.query("renewpwd");
+            if (StringKit.isBlank(curpwd)) {
+                return RestResponse.fail("请输入旧密码");
+            }
+            if (StringKit.isBlank(newpwd) || (newpwd.length() > 14 || newpwd.length() < 6)) {
+                return RestResponse.fail("请输入6-14位新密码");
+            }
+            if (!newpwd.equals(renewpwd)) {
+                return RestResponse.fail("新密码输入不一致，请确认");
             }
 
             if (!EncrypKit.md5(loginUser.getUser_name() + curpwd).equals(loginUser.getPass_word())) {
@@ -408,11 +414,9 @@ public class MemberController extends BaseController {
             try {
                 String new_pwd = EncrypKit.md5(loginUser.getUser_name() + newpwd);
                 userService.updatePwd(loginUser.getUid(), new_pwd);
-
                 LoginUser loginUserTemp = userService.getLoginUser(null, loginUser.getUid());
                 SessionKit.setLoginUser(request.session(), loginUserTemp);
                 userlogService.save(loginUser.getUid(), Actions.UPDATE_PWD, new_pwd);
-
                 return RestResponse.ok();
             } catch (Exception e) {
                 String msg = "密码修改失败";
@@ -433,31 +437,25 @@ public class MemberController extends BaseController {
      * 上传头像
      */
     @Route(value = "/uploadimg", method = HttpMethod.POST)
-    public void uploadimg(Request request, Response response) {
+    @JSON
+    public RestResponse uploadimg(@MultipartParam("avatar") FileItem fileItem) {
         LoginUser user = SessionKit.getLoginUser();
         if (null == user) {
-            return;
+            return RestResponse.fail(401);
         }
-        JSONObject res = new JSONObject();
-        FileItem fileItem = request.fileItem("avatar");
         if (null != fileItem) {
             String suffix = FileKit.getExtension(fileItem.fileName());
             if (StringKit.isNotBlank(suffix)) {
                 suffix = "." + suffix;
             }
             if (!Utils.isImage(fileItem.file())) {
-                res.put("status", 500);
-                res.put("msg", "不是图片类型");
-                return;
+                return RestResponse.fail("不是图片类型");
             }
             if (fileItem.file().length() / 1000 > 512000) {
-                res.put("status", 500);
-                res.put("msg", "图片超过5M");
-                return;
+                return RestResponse.fail("请上传小于5M的图片");
             }
 
-            String saveName = "avatar/" + user.getUid() + "/" + DateKit.dateFormat(new Date(), "yyyyMMddHHmmssSSS") + "_" + StringKit.getRandomChar(10) + suffix;
-
+            String saveName = "avatar/" + user.getUser_name() + "/" + StringKit.getRandomChar(10) + suffix;
             String filePath = upDir + saveName;
             File file = new File(filePath);
             try {
@@ -465,14 +463,18 @@ public class MemberController extends BaseController {
                     new File(file.getParent()).mkdirs();
                 }
                 Tools.copyFileUsingFileChannels(fileItem.file(), file);
-                res.put("status", 200);
+                Map<String, String> res = new HashMap<>();
+                res.put("status", "200");
                 res.put("savepath", saveName);
                 res.put("url", Constant.SITE_URL + "/upload/" + saveName);
-                response.json(res.toString());
+                return RestResponse.ok(res);
             } catch (Exception e) {
-                LOGGER.error("上传文件失败", e);
+                String msg = "上传失败";
+                LOGGER.error(msg, e);
+                return RestResponse.fail(msg);
             }
         }
+        return RestResponse.ok();
     }
 
     /**

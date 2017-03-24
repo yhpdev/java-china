@@ -282,37 +282,6 @@ $('.node-head .favorite').on('click', function(){
     });
     return false;
 });
-
-var info_data = {};
-$("#info_form :input").change(function (){
-	var key = $(this).attr('name');
-	info_data[key] = $(this).val();
-});
-
-// 修改个人基本信息
-$("#info_form .submit").on('click', function(e){
-	e.preventDefault();
-	if(len(info_data) > 0){
-        jc.post({
-            url : BASE+'/settings?type=info',
-            data: info_data,
-            success: function (result) {
-                info_data = {};
-                if(result && result.success){
-                    jc.alertOk('修改成功');
-                } else {
-                    if(result.code == 401){
-                        go_signin();
-                    } else {
-                        jc.alertError(result.msg || '修改失败');
-                    }
-                }
-            }
-        });
-	}
-	return false;
-});
-
 ////////////////////帖子操作:START//////////////////////
 
 function publish_topic() {
@@ -439,30 +408,6 @@ user.update_avatar = function(){
 	}
 	return false;
 };
-
-/**
- * 修改密码
- * @returns {boolean}
- */
-function update_pwd() {
-	var formData = $('#pwd_form').serialize();
-    jc.post({
-        url : BASE+'/settings?type=pwd',
-        data: formData,
-        success: function (result) {
-            if(result && result.success){
-                jc.alertOkAndReload('密码修改成功');
-            } else {
-                if(result.code == 401){
-                    go_signin();
-                } else {
-                    jc.alertError(result.msg || '密码修改失败');
-                }
-            }
-        }
-    });
-    return false;
-}
 
 ////////////////////个人设置:END//////////////////////
 

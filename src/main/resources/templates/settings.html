@@ -7,7 +7,10 @@
                     <h3 class="panel-title">用户编辑</h3>
                 </div>
                 <div class="panel-body">
-                	<form id="info_form" class="form-horizontal" role="form">
+                	<form id="info_form" class="form-horizontal" role="form" onsubmit="return doSetting('#info_form')">
+
+                        <input type="hidden" name="type" value="info" />
+
                         <div class="form-group">
                             <label class="col-sm-2 control-label">用户名</label>
                             <div class="col-sm-10">
@@ -15,9 +18,9 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="email" class="col-sm-2 control-label">电子邮件</label>
+                            <label class="col-sm-2 control-label">电子邮件</label>
                             <div class="col-sm-10">
-                                <input type="email" readonly="readonly" class="form-control input-sm" id="email" name="email" value="${profile.email}">
+                                <input type="email" readonly="readonly" class="form-control input-sm" value="${profile.email}">
                             </div>
                         </div>
                         <div class="form-group">
@@ -65,7 +68,7 @@
                         </div>
                         <div class="form-group">
                             <div class="col-sm-offset-2 col-sm-10">
-                                <button type="button" class="btn btn-success btn-sm submit" data-style="zoom-out">
+                                <button type="submit" class="btn btn-success btn-sm submit" data-style="zoom-out">
                                 	<span class="ladda-label">保存信息</span>
                                 </button>
                             </div>
@@ -79,11 +82,12 @@
                     <h3 class="panel-title">更换头像</h3>
                 </div>
                 <div class="panel-body">
-                	<form role="form" id="avatar_form" onsubmit="return user.update_avatar();">
+                	<form role="form" id="avatar_form" onsubmit="return doSetting('#avatar_form')">
+                        <input type="hidden" name="type" value="avatar" />
                         <div class="form-group">
                             <label class="col-sm-2 control-label">当前头像</label>
                             <div class="col-sm-10">
-                            	<input type="hidden" id="user_avatar" value=""/>
+                            	<input type="hidden" id="user_avatar" name="avatar" value=""/>
                                 <img id="upload_img" alt="${profile.username}" src="${profile.avatar}" 
                                 	width="73" height="73" onclick="doUpload()" style="cursor: pointer;" class="img-circle"/>
                                 <input type="file" name="avatar" class="fileUpload ladda-button" data-style="zoom-out"
@@ -93,7 +97,7 @@
                         <div class="form-group">
                             <div class="col-sm-offset-2 col-sm-10">
                             	<br/>
-                                <button type="submit" class="btn btn-primary btn-sm submit">更换头像</button>
+                                <button type="submit" class="btn btn-primary btn-sm">更换头像</button>
                             </div>
                         </div>
                     </form>
@@ -105,21 +109,22 @@
                     <h3 class="panel-title">修改密码</h3>
                 </div>
                 <div class="panel-body">
-                	<form id="pwd_form" class="form-horizontal" role="form" method="post" onsubmit="return update_pwd();">
+                	<form id="pwd_form" class="form-horizontal" role="form" method="post" onsubmit="return doSetting('#pwd_form');">
+                        <input type="hidden" name="type" value="pwd" />
                         <div class="form-group">
-                            <label for="email" class="col-sm-2 control-label">当前密码</label>
+                            <label class="col-sm-2 control-label">当前密码</label>
                             <div class="col-sm-10">
                                 <input type="password" class="form-control" name="curpwd" value="" required="required" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="email" class="col-sm-2 control-label">新密码</label>
+                            <label class="col-sm-2 control-label">新密码</label>
                             <div class="col-sm-10">
                                 <input type="password" class="form-control input-sm" name="newpwd" value="" required="required"/>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="email" class="col-sm-2 control-label">确认新密码</label>
+                            <label class="col-sm-2 control-label">确认新密码</label>
                             <div class="col-sm-10">
                                 <input type="password" class="form-control input-sm" name="renewpwd" value="" required="required"/>
                             </div>
@@ -132,10 +137,10 @@
                     </form>
                 </div>
             </div>
-        </div><!-- /.col-md-8 -->
+        </div>
         #include("./common/sidebar.html")
-	</div><!-- /.row -->
-    </div><!-- /.container -->
+	</div>
+    </div>
 #include("./common/footer.html") 
 <script type="text/javascript" src="/assets/scripts/jquery.liteuploader.min.js"></script>
 <script type="text/javascript">
@@ -147,13 +152,18 @@ $(document).ready(function(){
 	        allowedFileTypes: "image/jpeg,image/png,image/jpeg",
 	        maxSize: 512000
 		}
-	}).on("lu:success", function (e, data) {
-		  if(data && data.status == 200){
-		  	$("#upload_img").attr('src', data.url);
-			$("#user_avatar").val(data.savepath);
-		  } else {
-              jc.alertError(data.msg || "上传失败");
-          }
+	}).on("lu:success", function (e, result) {
+	    if(result && result.success){
+	        var data = result.payload;
+            $("#upload_img").attr('src', data.url);
+            $("#user_avatar").val(data.savepath);
+        } else {
+            if(result.code == 401){
+                go_signin();
+            } else {
+                jc.alertError(result.msg || "上传失败");
+            }
+        }
 	}).on("lu:errors", function (e, data) {
 		console.log(data);
 		if(data && data.length > 0){
@@ -171,6 +181,30 @@ $(document).ready(function(){
 	    $(this).data("liteUploader").startUpload();
 	});
 });
+
+/**
+ * 个人设置
+ * @returns {boolean}
+ */
+function doSetting(formId) {
+    jc.post({
+        url : BASE+'/settings',
+        data: $(formId).serialize(),
+        success: function (result) {
+            if(result && result.success){
+                jc.alertOkAndReload('保存成功');
+            } else {
+                if(result.code == 401){
+                    go_signin();
+                } else {
+                    jc.alertError(result.msg || '保存失败');
+                }
+            }
+        }
+    });
+    return false;
+}
+
 //上传方法
 function doUpload() {
 	$(".fileUpload").click();

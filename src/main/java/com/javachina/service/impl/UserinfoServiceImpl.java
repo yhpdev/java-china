@@ -5,10 +5,11 @@ import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
-import com.javachina.model.Userinfo;
+import com.blade.kit.StringKit;
+import com.javachina.model.UserInfo;
 import com.javachina.service.UserinfoService;
+import com.vdurmont.emoji.EmojiParser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,11 +19,11 @@ public class UserinfoServiceImpl implements UserinfoService {
     private ActiveRecord activeRecord;
 
     @Override
-    public Userinfo getUserinfo(Integer uid) {
-        return activeRecord.byId(Userinfo.class, uid);
+    public UserInfo getUserinfo(Integer uid) {
+        return activeRecord.byId(UserInfo.class, uid);
     }
 
-    private List<Userinfo> getUserinfoList(Take queryParam) {
+    private List<UserInfo> getUserinfoList(Take queryParam) {
         if (null != queryParam) {
             return activeRecord.list(queryParam);
         }
@@ -30,7 +31,7 @@ public class UserinfoServiceImpl implements UserinfoService {
     }
 
     @Override
-    public Paginator<Userinfo> getPageList(Take queryParam) {
+    public Paginator<UserInfo> getPageList(Take queryParam) {
         if (null != queryParam) {
             return activeRecord.page(queryParam);
         }
@@ -43,9 +44,9 @@ public class UserinfoServiceImpl implements UserinfoService {
             return false;
         }
         try {
-            Userinfo userinfo = new Userinfo();
-            userinfo.setUid(uid);
-            activeRecord.insert(userinfo);
+            UserInfo userInfo = new UserInfo();
+            userInfo.setUid(uid);
+            activeRecord.insert(userInfo);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,47 +55,31 @@ public class UserinfoServiceImpl implements UserinfoService {
     }
 
     @Override
-    public boolean update(Integer uid, String nickName, String jobs, String webSite,
-                          String github, String weibo, String location, String signature, String instructions) {
-        if (null != uid) {
-
-            Userinfo userinfo = new Userinfo();
-            userinfo.setUid(uid);
-
-            List<Object> params = new ArrayList<Object>();
-            if (null != nickName) {
-                userinfo.setNick_name(nickName);
+    public void update(UserInfo userInfo) {
+        if (null != userInfo && null != userInfo.getUid()) {
+            if (StringKit.isNotBlank(userInfo.getJobs())) {
+                userInfo.setJobs(EmojiParser.parseToAliases(userInfo.getJobs()));
             }
-            if (null != jobs) {
-                userinfo.setJobs(jobs);
+            if (StringKit.isNotBlank(userInfo.getGithub())) {
+                userInfo.setGithub(EmojiParser.parseToAliases(userInfo.getGithub()));
             }
-            if (null != webSite) {
-                userinfo.setWeb_site(webSite);
+            if (StringKit.isNotBlank(userInfo.getInstructions())) {
+                userInfo.setInstructions(EmojiParser.parseToAliases(userInfo.getInstructions()));
             }
-            if (null != github) {
-                userinfo.setGithub(github);
+            if (StringKit.isNotBlank(userInfo.getWeb_site())) {
+                userInfo.setWeb_site(EmojiParser.parseToAliases(userInfo.getWeb_site()));
             }
-            if (null != weibo) {
-                userinfo.setWeibo(weibo);
+            if (StringKit.isNotBlank(userInfo.getLocation())) {
+                userInfo.setLocation(EmojiParser.parseToAliases(userInfo.getLocation()));
             }
-            if (null != location) {
-                userinfo.setLocation(location);
-            }
-            if (null != signature) {
-                userinfo.setSignature(signature);
-            }
-            if (null != instructions) {
-                userinfo.setInstructions(instructions);
-            }
-            return activeRecord.update(userinfo) > 0;
+            activeRecord.update(userInfo);
         }
-        return false;
     }
 
     @Override
     public boolean delete(Integer uid) {
         if (null != uid) {
-            return activeRecord.delete(Userinfo.class, uid) > 0;
+            return activeRecord.delete(UserInfo.class, uid) > 0;
         }
         return false;
     }
