@@ -2,7 +2,6 @@ package com.javachina.interceptor;
 
 import com.blade.ioc.annotation.Inject;
 import com.blade.kit.StringKit;
-import com.blade.mvc.annotation.Intercept;
 import com.blade.mvc.http.Request;
 import com.blade.mvc.http.Response;
 import com.blade.mvc.interceptor.Interceptor;
@@ -13,7 +12,6 @@ import com.javachina.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Intercept
 public class BaseInterceptor implements Interceptor {
 
     private static final Logger LOGGE = LoggerFactory.getLogger(BaseInterceptor.class);

@@ -71,7 +71,7 @@
             return false;
         }
         jc.post({
-            url : BASE+'/topic/add',
+            url : '/topic/add',
             data: $('#topic-add').serialize(),
             success: function (result) {
                 if(result && result.success){
