@@ -5,8 +5,12 @@ import com.blade.ioc.annotation.Service;
 import com.blade.jdbc.ActiveRecord;
 import com.blade.jdbc.core.Take;
 import com.blade.jdbc.model.Paginator;
-import com.blade.kit.*;
+import com.blade.kit.BeanKit;
+import com.blade.kit.DateKit;
+import com.blade.kit.EncrypKit;
+import com.blade.kit.StringKit;
 import com.javachina.Types;
+import com.javachina.exception.TipException;
 import com.javachina.ext.Funcs;
 import com.javachina.kit.MailKit;
 import com.javachina.model.LoginUser;
@@ -14,7 +18,6 @@ import com.javachina.model.User;
 import com.javachina.model.Userinfo;
 import com.javachina.service.*;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,18 +122,29 @@ public class UserServiceImpl implements UserService {
     @Override
     public User signin(String loginName, String passWord) {
         if (StringKit.isBlank(loginName) || StringKit.isBlank(passWord)) {
-            return null;
+            throw new TipException("用户名和密码不能为空");
         }
 
+        boolean hasUser = this.hasUser(loginName);
+        if (!hasUser) {
+            throw new TipException("该用户不存在");
+        }
         String pwd = EncrypKit.md5(loginName + passWord);
-
         Take take = new Take(User.class);
         take.eq("pass_word", pwd)
                 .in("status", 0, 1)
                 .eq("login_name", loginName)
                 .or("email", "=", loginName);
 
-        return activeRecord.one(take);
+        User user = activeRecord.one(take);
+        if (null == user) {
+            throw new TipException("用户名或者密码错误");
+        }
+
+        if (user.getStatus() == 0) {
+            throw new TipException("该用户尚未激活，请登录邮箱激活帐号后登录");
+        }
+        return user;
     }
 
     @Override
@@ -166,7 +180,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean update(User user) {
-        if(null != user && null != user.getUid()){
+        if (null != user && null != user.getUid()) {
             return activeRecord.update(user) > 0;
         }
         return false;

@@ -5,14 +5,12 @@ import com.blade.jdbc.core.Take;
 import com.blade.kit.DateKit;
 import com.blade.kit.PatternKit;
 import com.blade.kit.StringKit;
-import com.blade.mvc.annotation.Controller;
-import com.blade.mvc.annotation.PathParam;
-import com.blade.mvc.annotation.QueryParam;
-import com.blade.mvc.annotation.Route;
+import com.blade.mvc.annotation.*;
 import com.blade.mvc.http.HttpMethod;
 import com.blade.mvc.http.Request;
 import com.blade.mvc.http.Response;
 import com.blade.mvc.view.ModelAndView;
+import com.blade.mvc.view.RestResponse;
 import com.blade.patchca.DefaultPatchca;
 import com.blade.patchca.Patchca;
 import com.javachina.Actions;
@@ -89,50 +87,32 @@ public class AuthController extends BaseController {
      * 登录操作
      */
     @Route(value = "/signin", method = HttpMethod.POST)
-    public ModelAndView signin(Request request, Response response,
-                               @QueryParam String login_name, @QueryParam String pass_word, @QueryParam String rememberme) {
+    @JSON
+    public RestResponse signin(Request request, Response response,
+                               @QueryParam String login_name,
+                               @QueryParam String pass_word,
+                               @QueryParam String rememberme) {
 
-        if (StringKit.isBlank(login_name) || StringKit.isBlank(pass_word)) {
-            request.attribute(this.ERROR, "用户名和密码不能为空");
-            request.attribute("login_name", login_name);
-            return this.getView("signin");
+        try {
+            User user = userService.signin(login_name, pass_word);
+            LoginUser loginUser = userService.getLoginUser(user, null);
+            SessionKit.setLoginUser(request.session(), loginUser);
+            if (StringKit.isNotBlank(rememberme) && rememberme.equals("on")) {
+                SessionKit.setCookie(response, Constant.USER_IN_COOKIE, loginUser.getUid());
+            }
+            userlogService.save(user.getUid(), Actions.SIGNIN, login_name);
+            String val = SessionKit.getCookie(request, Constant.JC_REFERRER_COOKIE);
+            return RestResponse.ok(val);
+        } catch (Exception e) {
+            String msg = "登录失败";
+            if (e instanceof TipException) {
+                msg = e.getMessage();
+            } else {
+                LOGGER.error(msg, e);
+            }
+            return RestResponse.fail(msg);
         }
 
-        boolean hasUser = userService.hasUser(login_name);
-        if (!hasUser) {
-            request.attribute(this.ERROR, "该用户不存在");
-            request.attribute("login_name", login_name);
-            return this.getView("signin");
-        }
-
-        User user = userService.signin(login_name, pass_word);
-        if (null == user) {
-            request.attribute(this.ERROR, "用户名或密码错误");
-            request.attribute("login_name", login_name);
-            return this.getView("signin");
-        }
-
-        if (user.getStatus() == 0) {
-            request.attribute(this.ERROR, "该用户尚未激活，请登录邮箱激活帐号后登录");
-            request.attribute("login_name", login_name);
-            return this.getView("signin");
-        }
-
-        LoginUser loginUser = userService.getLoginUser(user, null);
-        SessionKit.setLoginUser(request.session(), loginUser);
-        if (StringKit.isNotBlank(rememberme) && rememberme.equals("on")) {
-            SessionKit.setCookie(response, Constant.USER_IN_COOKIE, loginUser.getUid());
-        }
-
-        userlogService.save(user.getUid(), Actions.SIGNIN, login_name);
-
-        String val = SessionKit.getCookie(request, Constant.JC_REFERRER_COOKIE);
-        if (StringKit.isNotBlank(val)) {
-            response.redirect(val);
-        } else {
-            response.go("/");
-        }
-        return null;
     }
 
     /**

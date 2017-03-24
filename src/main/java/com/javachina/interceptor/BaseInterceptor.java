@@ -50,7 +50,7 @@ public class BaseInterceptor implements Interceptor {
         }
 
 		/*if(request.method().equals("POST")){
-			String referer = request.header("Referer");
+            String referer = request.header("Referer");
 			if(StringKit.isBlank(referer) || !referer.startsWith(Constant.SITE_URL)){
 				response.go("/");
 				return false;

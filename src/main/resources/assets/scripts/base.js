@@ -4,10 +4,10 @@
 $.extend({
     jc: function () {
     },
-    constant:function(){ //常量池
-        return{
+    constant: function () { //常量池
+        return {
             ///-------文件常量----------
-            MAX_FILES:10,//一次队列最大文件数
+            MAX_FILES: 10,//一次队列最大文件数
         }
     }
 
@@ -18,7 +18,7 @@ $.extend({
  * @param options
  */
 $.jc.prototype.alertOk = function (options) {
-    options = options.length ? {text:options} : ( options || {} );
+    options = options.length ? {text: options} : ( options || {} );
     options.title = options.title || '操作成功';
     options.text = options.text;
     options.showCancelButton = false;
@@ -32,11 +32,13 @@ $.jc.prototype.alertOk = function (options) {
  * @param text
  */
 $.jc.prototype.alertOkAndReload = function (text) {
-    this.alertOk({text:text, then:function () {
-        setTimeout(function () {
-            window.location.reload();
-        }, 800);
-    }});
+    this.alertOk({
+        text: text, then: function () {
+            setTimeout(function () {
+                window.location.reload();
+            }, 800);
+        }
+    });
 };
 
 /**
@@ -44,7 +46,7 @@ $.jc.prototype.alertOkAndReload = function (text) {
  * @param options
  */
 $.jc.prototype.alertWarn = function (options) {
-    options = options.length ? {text:options} : ( options || {} );
+    options = options.length ? {text: options} : ( options || {} );
     options.title = options.title || '警告信息';
     options.text = options.text;
     options.timer = 3000;
@@ -70,7 +72,7 @@ $.jc.prototype.alertConfirm = function (options) {
  * @param options
  */
 $.jc.prototype.alertError = function (options) {
-    options = options.length ? {text:options} : ( options || {} );
+    options = options.length ? {text: options} : ( options || {} );
     options.title = options.title || '错误信息';
     options.text = options.text;
     options.type = 'error';
@@ -119,4 +121,15 @@ $.jc.prototype.post = function (options) {
             //
         }
     });
+};
+
+/**
+ * 在页面显示一个错误提示框
+ *
+ * @param selector  提示框元素
+ * @param msg       消息内容
+ */
+$.jc.prototype.showError = function (selector, msg) {
+  $(selector).removeClass('hidden');
+  $(selector).find('label').text(msg);
 };
