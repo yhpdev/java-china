@@ -160,7 +160,7 @@ CREATE TABLE `t_favorite` (
   `event_id` int(10) NOT NULL,
   `create_time` int(10) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8; 
 
 LOCK TABLES `t_favorite` WRITE;
 /*!40000 ALTER TABLE `t_favorite` DISABLE KEYS */;
