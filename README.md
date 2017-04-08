@@ -7,8 +7,6 @@
 
 Java中国是一款开源免费的论坛程序，致力于打造一个简洁优质的Java程序员论坛。
 
-演示地址 [http://java-china.org](http://java-china.org)
-
 有任何问题可以发 [issues](https://github.com/junicorn/java-china/issues/new)
 
 ## 特性
@@ -36,6 +34,3 @@ Java中国是一款开源免费的论坛程序，致力于打造一个简洁优�
 
 [Apache2](https://github.com/junicorn/java-china/blob/master/LICENSE)
 
-## 捐赠我们
-
-![alt](http://7xsk2r.com2.z0.glb.clouddn.com/alipay.png)
