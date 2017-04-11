@@ -19,3 +19,4 @@
 
 [Apache2](https://github.com/junicorn/java-china/blob/master/LICENSE)
 
+<p>本站由简洁优雅的JavaWeb框架 <a href="http://bladejava.com" style="color:#8006E4;" target="_blank">Blade</a> 开发。</p>
